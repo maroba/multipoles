@@ -104,6 +104,14 @@ x, y, z = 30.5, 30.6, 30.7
 value = Phi(x, y, z)
 ```
 
+## Installation
+
+Simply use `pip`:
+
+```
+pip install multipoles
+```
+
 ## Dependencies
 
 `multipoles` uses `numpy` for fast array processing and `scipy` for support of spherical harmonics.
