@@ -46,8 +46,8 @@ class TestMultipoleExpansion(unittest.TestCase):
         phi_l = mpe.multipole_contribs((10, 0, 0))
         np.testing.assert_array_almost_equal((0, 0.02, 0, 0), phi_l, decimal=3)
 
-        self.assertAlmostEqual(mpe.eval((10, 0, 0), 3), 1/9 - 1/11, places=3)
-        self.assertAlmostEqual(mpe(10, 0, 0), 1 / 9 - 1 / 11, places=3)
+        self.assertAlmostEqual(mpe.eval((10, 0, 0), 3), 1/9. - 1/11., places=3)
+        self.assertAlmostEqual(mpe(10, 0, 0), 1 / 9. - 1 / 11., places=3)
 
 
     def test_dipole_of_point_charges(self):
