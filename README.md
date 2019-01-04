@@ -1,7 +1,7 @@
 
 # multipoles
 
-**multipoles** is a Python package for performing multipole expansions for the solutions of the Poisson equation (e.g. electrostatic or gravitational potentials). Can handle discrete and continuous "charge" distributions.
+**multipoles** is a Python package for performing multipole expansions for the solutions of the Poisson equation (e.g. electrostatic or gravitational potentials). It can handle discrete and continuous "charge" distributions.
 
 ## Background
 
