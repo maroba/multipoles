@@ -1,3 +1,4 @@
+[![PyPI version](https://badge.fury.io/py/multipoles.svg)](https://badge.fury.io/py/multipoles)
 
 # multipoles
 
