@@ -30,6 +30,8 @@ As example for a discrete charge distribution we model two point charges with po
 ```python
 from multipoles import MultipoleExpansion
 
+# Prepare the charge distribution dict for the MultipoleExpansion object:
+
 charge_dist = {
     'discrete': True,     # point charges are discrete charge distributions
     'charges': [
