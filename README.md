@@ -1,3 +1,4 @@
+[![PyPI version](https://badge.fury.io/py/multipoles.svg)](https://badge.fury.io/py/multipoles)
 
 # multipoles
 
@@ -101,6 +102,14 @@ Phi = MultipoleExpansion(charge_dist, l_max)
 
 x, y, z = 30.5, 30.6, 30.7
 value = Phi(x, y, z)
+```
+
+## Installation
+
+Simply use `pip`:
+
+```
+pip install multipoles
 ```
 
 ## Dependencies
