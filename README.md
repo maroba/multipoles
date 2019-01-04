@@ -10,6 +10,7 @@ For a given function <img src="docs/math/rho.png" alt="rho" height="20"/>, the s
 
 <img src="docs/math/solution.png" alt="Solution" height="40"/>
 
+Examples of this are the electrostatic and Newtonian gravitational potential.
 If you need to evaluate <img src="docs/math/Phi.png" alt="Phi" height="20"/> at many points, calculating the integral for each point is computationally expensive. As a faster alternative, we can express <img src="docs/math/Phi.png" alt="Phi" height="20"/> in terms of the multipole moments <img src="docs/math/qlm.png" alt="qlm" height="15"/>:
 
 <img src="docs/math/expansion.png" alt="Expansion" height="80"/>
