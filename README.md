@@ -19,4 +19,4 @@ The multipole moments are:
 
 <img src="docs/math/moments.png" alt="Multipole Moments" height="40"/>
 
-This approach is usually much faster because the contributions to <img src="docs/math/contrib.png" alt="Phi" height="20"/> are getting smaller with increasing <i>l</i>. So we just have to calculate a few integrals for obtaining some <img src="docs/math/qlm.png" alt="qlm" height="15"/>.
+This approach is usually much faster because the contributions <img src="docs/math/contrib.png" alt="Phi" height="20"/> are getting smaller with increasing <i>l</i>. So we just have to calculate a few integrals for obtaining some <img src="docs/math/qlm.png" alt="qlm" height="15"/>.
