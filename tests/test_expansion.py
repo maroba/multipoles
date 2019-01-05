@@ -2,14 +2,14 @@ import sys, os
 sys.path.insert(0, os.path.abspath('..'))
 import unittest
 import numpy as np
-from multipoles.expansion import MultipoleExpansion
+from multipoles.expansion import MultipoleExpansion, InvalidChargeDistributionException
 
 
 class TestMultipoleExpansion(unittest.TestCase):
 
     def test_gaussian_monopole_at_center(self):
 
-        x, y, z = [np.linspace(-5, 5, 101)]*3
+        x, y, z = [np.linspace(-5, 5, 51)]*3
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
         sigma = 1.5
         rho = gaussian((X, Y, Z), (0, 0, 0), sigma)
@@ -22,7 +22,7 @@ class TestMultipoleExpansion(unittest.TestCase):
 
     def test_gaussian_monopole_at_off_center(self):
 
-        x, y, z = [np.linspace(-5, 5, 101)]*3
+        x, y, z = [np.linspace(-5, 5, 51)]*3
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
         sigma = 1.5
         rho = gaussian((X, Y, Z), (1, 0, 0), sigma)
@@ -32,7 +32,7 @@ class TestMultipoleExpansion(unittest.TestCase):
 
     def test_gaussian_dipole_at_center(self):
 
-        x, y, z = [np.linspace(-5, 5, 101)]*3
+        x, y, z = [np.linspace(-5, 5, 51)]*3
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
         sigma = 1.5
         rho = gaussian((X, Y, Z), (1, 0, 0), sigma) - gaussian((X, Y, Z), (-1, 0, 0), sigma)
@@ -62,6 +62,66 @@ class TestMultipoleExpansion(unittest.TestCase):
 
         np.testing.assert_array_almost_equal((0, 0.02, 0, 0), mpe.multipole_contribs((10, 0, 0)), decimal=3)
 
+    def test_charge_dist_without_discrete_should_raise(self):
+
+        charge_dist = {
+            'charges': [
+                {'q': 1, 'xyz': (1, 0, 0)},
+                {'q': -1, 'xyz': (-1, 0, 0)},
+            ]
+        }
+
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(charge_dist, 2))
+
+    def test_charge_dist_without_charges_should_raise(self):
+
+        charge_dist = {
+            'discrete': True,
+        }
+
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(charge_dist, 2))
+
+    def test_discrete_charge_dist_with_rho_should_raise(self):
+
+        charge_dist = {
+            'discrete': True,
+            'rho': None,
+            'xyz': None
+        }
+
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(charge_dist, 2))
+
+    def test_charges_without_list_should_raise(self):
+
+        charge_dist = {
+            'discrete': False,
+            'charges':
+                {'q': 1, 'xyz': (1, 0, 0)},
+        }
+
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(charge_dist, 2))
+
+    def test_charges_without_q_should_raise(self):
+
+        charge_dist = {
+            'discrete': False,
+            'charges': [
+                {'qa': 1, 'xyz': (1, 0, 0)}],
+        }
+
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(charge_dist, 2))
+
+    def test_continuous_charge_dist_with_charges_should_raise(self):
+
+        charge_dist = {
+            'discrete': False,
+            'charges': [
+                {'q': 1, 'xyz': (1, 0, 0)},
+                {'q': -1, 'xyz': (-1, 0, 0)},
+            ]
+        }
+
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(charge_dist, 2))
 
 
 def gaussian(XYZ, xyz0, sigma):

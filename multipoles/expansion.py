@@ -100,6 +100,8 @@ class MultipoleExpansion(object):
 
         self.charge_dist = charge_dist
 
+        self._assert_charge_dist()
+
         if charge_dist['discrete']:
             self.charges = list(charge_dist['charges'])
 
@@ -132,6 +134,8 @@ class MultipoleExpansion(object):
             self.internal_coords = tuple(c - self.center_of_charge[k] for c, k in zip([X, Y, Z], range(3)))
             self.internal_coords_spherical = cartesian_to_spherical(*self.internal_coords)
 
+        if l_max < 0 or l_max != int(l_max):
+            raise ValueError("'lmax' must be integer >= 0.")
         self.l_max = l_max
 
         # The multipole moments are a dict with (l,m) as keys
@@ -194,6 +198,27 @@ class MultipoleExpansion(object):
             integrand = R**l * self.rho * np.conj(Y_lm)
             return integrand.sum() * self.dvol * prefac
 
+    def _assert_charge_dist(self):
+
+        if 'discrete' not in self.charge_dist:
+            raise InvalidChargeDistributionException("Parameter 'discrete' missing.")
+
+        if self.charge_dist['discrete']:
+            _check_dict_for_keys(self.charge_dist, ['discrete', 'charges'])
+
+            if not hasattr(self.charge_dist['charges'], '__len__'):
+                raise InvalidChargeDistributionException("Parameter 'charges' must be an array-like of dicts.")
+
+            for charge in self.charge_dist['charges']:
+                _check_dict_for_keys(charge, ['q', 'xyz'])
+
+        else:
+            _check_dict_for_keys(self.charge_dist, ['discrete', 'rho', 'xyz'])
+
+
+class InvalidChargeDistributionException(Exception):
+    pass
+
 
 def cartesian_to_spherical(*coords):
 
@@ -224,3 +249,17 @@ def cartesian_to_spherical(*coords):
 
     np.seterr(**old_settings)
     return R, Phi, Theta
+
+
+def _check_dict_for_keys(d, keys):
+
+    msgs = ""
+    for key in keys:
+        if key not in d:
+            msgs += "Parameter '%s' missing.\n" % key
+    for key in d.keys():
+        if key not in keys:
+            msgs += "Unknown parameter '%s'.\n" % key
+
+    if msgs:
+        raise InvalidChargeDistributionException(msgs)
