@@ -127,7 +127,6 @@ class TestMultipoleExpansion(unittest.TestCase):
         self.assertEqual(3, actual.ndim)
         self.assertAlmostEqual(actual[0, 25, 25], 1 / 5., delta=5)
 
-    @unittest.skip
     def test_gaussian_at_center_evaluate_with_mask(self):
         x, y, z = [np.linspace(-5, 5, 51)] * 3
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
@@ -135,11 +134,16 @@ class TestMultipoleExpansion(unittest.TestCase):
         rho = gaussian((X, Y, Z), (0, 0, 0), sigma)
         mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3)
 
+        mask = np.ones_like(rho, dtype=bool)
+        mask[1:-1, 1:-1, 1:-1] = False
         actual = np.zeros_like(rho)
-        actual[:, :, :] = mpe[:, :, :]
+        actual[mask] = mpe[mask]
 
         self.assertEqual(3, actual.ndim)
+        self.assertEqual(actual.shape, rho.shape)
         self.assertAlmostEqual(actual[0, 25, 25], 1 / 5., delta=5)
+        self.assertTrue(np.all(actual[1:-1, 1:-1, 1:-1] == 0))
+        self.assertFalse(np.all(actual[mask] == 0))
 
 
 def gaussian(XYZ, xyz0, sigma):
