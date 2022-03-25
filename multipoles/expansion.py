@@ -144,6 +144,20 @@ class MultipoleExpansion(object):
     def __call__(self, *args, **kwargs):
         return self.eval(args, **kwargs)
 
+    def __getitem__(self, *mask):
+        mask = tuple(*mask)
+        mp_contribs = []
+        r, phi, theta = self.internal_coords_spherical
+        for l in range(self.l_max + 1):
+            phi_l = 0
+            for m in range(-l, l + 1):
+                Y_lm = sph_harm(m, l, phi[mask], theta[mask])
+                q_lm = self.multipole_moments[(l, m)]
+                phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm / r[mask] ** (l + 1)
+            mp_contribs.append(phi_l.real)
+
+        return sum(mp_contribs)
+
     def eval(self, xyz, l_max=None):
         if l_max is None:
             l_max = self.l_max
