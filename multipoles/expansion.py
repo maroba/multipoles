@@ -147,6 +147,8 @@ class MultipoleExpansion(object):
     def __getitem__(self, *mask):
         if not isinstance(mask[0], np.ndarray):
             mask = tuple(*mask)
+        else:
+            mask = mask[0]
         mp_contribs = []
         r, phi, theta = self.internal_coords_spherical
         for l in range(self.l_max + 1):
