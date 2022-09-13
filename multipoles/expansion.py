@@ -103,6 +103,8 @@ class MultipoleExpansion(object):
         self.charge_dist = charge_dist
         if exterior is None and interior is None:
           exterior = True
+        elif interior is not None and not interior and exterior is not None and not exterior:
+          raise InvalidExpansionException("Either interior or exeterior must be set.")
         else:
           exterior = bool(exterior)
           interior = bool(interior)

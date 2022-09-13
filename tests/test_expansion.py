@@ -4,7 +4,9 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 import unittest
 import numpy as np
-from multipoles.expansion import MultipoleExpansion, InvalidChargeDistributionException
+from multipoles.expansion import (
+    MultipoleExpansion, InvalidChargeDistributionException, InvalidExpansionException
+)
 
 
 class TestMultipoleExpansion(unittest.TestCase):
@@ -73,7 +75,6 @@ class TestMultipoleExpansion(unittest.TestCase):
         # Should add to 1 at the center
         np.testing.assert_array_almost_equal(1, mpe(0, 0, 0), decimal=3)
 
-
     def test_balanced_guassian_dipole(self):
         x, y, z = [np.linspace(-6, 6, 51)] * 3
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
@@ -85,35 +86,47 @@ class TestMultipoleExpansion(unittest.TestCase):
         self.assertAlmostEqual(0, mpe.total_charge, places=4)
 
         # Should cancel out at the center
-        np.testing.assert_array_almost_equal(0, mpe(0, 0, 0), phi_l, decimal=3)
+        np.testing.assert_array_almost_equal(0, mpe(0, 0, 0), decimal=3)
 
+    def test_explicit_interior_expansion_call(self):
+        charges = {
+            'discrete': True,
+            'charges': [
+                {'q': 1, 'xyz': (10, 0, 0)},
+                {'q': -1, 'xyz': (-10, 0, 0)},
+            ]
+        }
+        mpe_interior = MultipoleExpansion(charges, l_max=3, interior=True)
+        mpe_not_exterior = MultipoleExpansion(charges, l_max=3, exterior=False)
+
+        np.testing.assert_array_almost_equal(mpe_interior.multipole_contribs((0, 1, 1)),
+            mpe_not_exterior.multipole_contribs((0, 1, 1)), decimal=10)
 
     def test_explicit_exterior_expansion_call(self):
-        mpe_exterior = MultipoleExpansion({
+        charges = {
             'discrete': True,
             'charges': [
                 {'q': 1, 'xyz': (1, 0, 0)},
                 {'q': -1, 'xyz': (-1, 0, 0)},
             ]
-        }, l_max=3, exterior=True)
-
-        mpe_not_interior = MultipoleExpansion({
-            'discrete': True,
-            'charges': [
-                {'q': 1, 'xyz': (1, 0, 0)},
-                {'q': -1, 'xyz': (-1, 0, 0)},
-            ]
-        }, l_max=3, interior=False)
+        }
+        mpe_exterior = MultipoleExpansion(charges, l_max=3, exterior=True)
+        mpe_not_interior = MultipoleExpansion(charges, l_max=3, interior=False)
 
         np.testing.assert_array_almost_equal(mpe_exterior.multipole_contribs((10, 0, 0)),
             mpe_not_interior.multipole_contribs((10, 0, 0)), decimal=10)
 
+    def test_expansion_type_is_exclusive(self):
+        self.assertRaises(InvalidExpansionException, lambda:
+            MultipoleExpansion({}, 2, interior=True, exterior=True))
+        self.assertRaises(InvalidExpansionException, lambda:
+            MultipoleExpansion({}, 2, interior=False, exterior=False))
 
-    def test_expansion_type_is_exclusive():
-        self.assertRaises(InvalidExpansionException, lambda:
-            MultipoleExpansion({}, interior=True, exterior=True))
-        self.assertRaises(InvalidExpansionException, lambda:
-            MultipoleExpansion({}, interior=False, exterior=False))
+    def test_explict_expansion_type(self):
+        self.assertRaises(InvalidChargeDistributionException, lambda:
+            MultipoleExpansion({}, 2, interior=False, exterior=True))
+        self.assertRaises(InvalidChargeDistributionException, lambda:
+            MultipoleExpansion({}, 2, interior=True, exterior=False))
 
     def test_charge_dist_without_discrete_should_raise(self):
         charge_dist = {
