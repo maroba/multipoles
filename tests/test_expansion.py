@@ -59,6 +59,62 @@ class TestMultipoleExpansion(unittest.TestCase):
 
         np.testing.assert_array_almost_equal((0, 0.02, 0, 0), mpe.multipole_contribs((10, 0, 0)), decimal=3)
 
+    def test_surrounding_point_charges(self):
+        mpe = MultipoleExpansion({
+            'discrete': True,
+            'charges': [
+                {'q': 1, 'xyz': (0, 4, 0)},
+                {'q': 1, 'xyz': (0, -4, 0)},
+                {'q': 1, 'xyz': (4, 0, 0)},
+                {'q': 1, 'xyz': (-4, 0, 0)},
+            ]
+        }, l_max=3, interior=True)
+
+        # Should add to 1 at the center
+        np.testing.assert_array_almost_equal(1, mpe(0, 0, 0), decimal=3)
+
+
+    def test_balanced_guassian_dipole(self):
+        x, y, z = [np.linspace(-6, 6, 51)] * 3
+        X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+        sigma = 1
+        rho = gaussian((X, Y, Z), (3, 3, 3), sigma) - gaussian((X, Y, Z), (-3, -3, -3), sigma)
+        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho,
+          'xyz': (X, Y, Z)}, l_max=3, interior=True)
+
+        self.assertAlmostEqual(0, mpe.total_charge, places=4)
+
+        # Should cancel out at the center
+        np.testing.assert_array_almost_equal(0, mpe(0, 0, 0), phi_l, decimal=3)
+
+
+    def test_explicit_exterior_expansion_call(self):
+        mpe_exterior = MultipoleExpansion({
+            'discrete': True,
+            'charges': [
+                {'q': 1, 'xyz': (1, 0, 0)},
+                {'q': -1, 'xyz': (-1, 0, 0)},
+            ]
+        }, l_max=3, exterior=True)
+
+        mpe_not_interior = MultipoleExpansion({
+            'discrete': True,
+            'charges': [
+                {'q': 1, 'xyz': (1, 0, 0)},
+                {'q': -1, 'xyz': (-1, 0, 0)},
+            ]
+        }, l_max=3, interior=False)
+
+        np.testing.assert_array_almost_equal(mpe_exterior.multipole_contribs((10, 0, 0)),
+            mpe_not_interior.multipole_contribs((10, 0, 0)), decimal=10)
+
+
+    def test_expansion_type_is_exclusive():
+        self.assertRaises(InvalidExpansionException, lambda:
+            MultipoleExpansion({}, interior=True, exterior=True))
+        self.assertRaises(InvalidExpansionException, lambda:
+            MultipoleExpansion({}, interior=False, exterior=False))
+
     def test_charge_dist_without_discrete_should_raise(self):
         charge_dist = {
             'charges': [

@@ -5,50 +5,52 @@ from scipy.special import sph_harm
 class MultipoleExpansion(object):
     """
     Perform a multipole expansion for a given charge or mass distribution.
-    
+
     Determines the spherical multipole moments of the given distribution and
     can calculate the solution of the electrostatic or gravitational potential
-    based on the multipole expansion.    
+    based on the multipole expansion.
     """
 
-    def __init__(self, charge_dist, l_max):
+    def __init__(self, charge_dist, l_max, exterior=None, interior=None):
 
         """
         Create a MultipoleExpansion object for a given charge or mass distribution.
-        
+
         :param charge_dist:    a dict describing the charge distribution (see below)
         :param l_max:          the maximum multipole moment to consider (0=monopole, 1=dipole, etc.)
-        
-        
+        :param exterior:       whether to perform an exterior expansion (default). If false, interior expansion will be used
+        :param interior:       sytaxic override for exterior expansion parameter
+
+
         The charge_dist dict:
-        
+
            For discrete charge distributions (point charges) the dict MUST contain the
            following items:
-           
+
                Key           Value
                ------------------------------------------------------------------------
                'discrete'    True
                'q'           the charge (positive or negative floating point number)
                'xyz'         the location of the charge in cartesian coordinates
                              (a tuple, list or array of length 3)
-                             
+
             For continuous charge distributions (charge density) the dict MUST contain the
             following items:
-            
+
                Key           Value
                ------------------------------------------------------------------------
                'discrete'    False
                'rho'         the 3D charge distribution (3D numpy array)
                'xyz'         the domain of the charge distribution
                              (3-tuple of 3D coordinate arrays, see example below)
-               
-        
-        =======================                            
+
+
+        =======================
         **Example (Discrete)**:
-        
-        As example for a discrete charge distribution we model two point charges with 
+
+        As example for a discrete charge distribution we model two point charges with
         positive and negative unit charge located on the z-axis:
-        
+
         >>> from multipoles import MultipoleExpansion
 
         Prepare the charge distribution dict for the MultipoleExpansion object:
@@ -56,16 +58,16 @@ class MultipoleExpansion(object):
         >>> charge_dist = {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 1)}, {'q': -1, 'xyz': (0, 0, -1)}]}
         >>> l_max = 2
         >>> Phi = MultipoleExpansion(charge_dist, l_max)
-         
-         
-        =========================                            
+
+
+        =========================
         **Example (Continuous)**:
-        
+
         As an example for a continuous charge distribution, we smear out the point charges from the previous example:
-        
+
         >>> from multipoles import MultipoleExpansion
         >>> import numpy as np
-                
+
         First we set up our grid, a cube of length 10 centered at the origin:
 
         >>> npoints = 101
@@ -85,7 +87,7 @@ class MultipoleExpansion(object):
         The width of our gaussians:
         >>> sigma = 1.5
 
-        Initialize the charge density rho, which is a 3D numpy array:        
+        Initialize the charge density rho, which is a 3D numpy array:
         >>> rho = gaussian(XYZ, (0, 0, 1), sigma) - gaussian(XYZ, (0, 0, -1), sigma)
 
         Prepare the charge distribution dict for the MultipoleExpansion object:
@@ -94,11 +96,23 @@ class MultipoleExpansion(object):
 
         The rest is the same as for the discrete case:
         >>> l_max = 2
-        >>> Phi = MultipoleExpansion(charge_dist, l_max)           
-                
+        >>> Phi = MultipoleExpansion(charge_dist, l_max)
+
         """
 
         self.charge_dist = charge_dist
+        if exterior is None and interior is None:
+          exterior = True
+        else:
+          exterior = bool(exterior)
+          interior = bool(interior)
+          exterior = exterior or not interior
+          interior = interior or not exterior
+          if interior and exterior:
+            raise InvalidExpansionException("Interior and exeterior expansion cannot both be set.")
+
+        self.exterior = exterior
+        self.interior = interior
 
         self._assert_charge_dist()
 
@@ -173,7 +187,7 @@ class MultipoleExpansion(object):
 
         xyz_internal = xyz - self.center_of_charge
         r, phi, theta = cartesian_to_spherical(*xyz_internal)
-     
+
         mp_contribs = []
 
         for l in range(self.l_max + 1):
@@ -181,7 +195,10 @@ class MultipoleExpansion(object):
             for m in range(-l, l+1):
                 Y_lm = sph_harm(m, l, phi, theta)
                 q_lm = self.multipole_moments[(l, m)]
-                phi_l += np.sqrt(4*np.pi/(2*l+1)) * q_lm * Y_lm / r**(l+1)
+                if self.exterior:
+                  phi_l += np.sqrt(4*np.pi/(2*l+1)) * q_lm * Y_lm / r**(l+1)
+                else:
+                  phi_l += np.sqrt(4*np.pi/(2*l+1)) * q_lm * Y_lm * r**l
             mp_contribs.append(phi_l.real)
 
         return mp_contribs
@@ -206,13 +223,19 @@ class MultipoleExpansion(object):
                 q = chg['q']
                 r, phi, theta = cartesian_to_spherical(*xyz)
                 Y_lm = sph_harm(m, l, phi, theta)
-                q_lm += q * r**l * np.conj(Y_lm)
+                if self.exterior:
+                  q_lm += q * r**l * np.conj(Y_lm)
+                else:
+                  q_lm += q / r**(l+1) * np.conj(Y_lm)
             q_lm *= prefac
             return q_lm.real
         else:
             R, Phi, Theta = self.internal_coords_spherical
             Y_lm = sph_harm(m, l, Phi, Theta)
-            integrand = R**l * self.rho * np.conj(Y_lm)
+            if self.exterior:
+              integrand = R**l * self.rho * np.conj(Y_lm)
+            else:
+              integrand = 1/R**(l+1) * self.rho * np.conj(Y_lm)
             return integrand.sum() * self.dvol * prefac
 
     def _assert_charge_dist(self):
@@ -237,14 +260,18 @@ class InvalidChargeDistributionException(Exception):
     pass
 
 
+class InvalidExpansionException(Exception):
+    pass
+
+
 def cartesian_to_spherical(*coords):
 
     X, Y, Z = coords
     R = np.sqrt(X**2 + Y**2 + Z**2)
     R_xy = np.sqrt(X**2 + Y**2)
-    
-    # the 'where' argument in np.arccos is not working as expected, 
-    # so handle invalid points manually and turn off floating point 
+
+    # the 'where' argument in np.arccos is not working as expected,
+    # so handle invalid points manually and turn off floating point
     # errors temporarily
     old_settings = np.geterr()
     np.seterr(all='ignore')
