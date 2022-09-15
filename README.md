@@ -19,7 +19,7 @@ for a exterior expansion, or
 
 $$\Phi(x,y,z)=\sum_{l=0}^\infty\underbrace{\sqrt{\frac{4\pi}{2l+1}}\sum_{m=-l}^lY_{lm}(\theta, \varphi)I_{lm}r^{l}}_{\Phi^{(l)}}$$
 
-for an interior expansion (unimplemented); where $r, \theta, \varphi$ are the usual spherical coordinates corresponding to the cartesian coordinates $x, y, z$ and $Y_{lm}(\theta, \varphi)$ are the spherical harmonics.
+for an interior expansion; where $r, \theta, \varphi$ are the usual spherical coordinates corresponding to the cartesian coordinates $x, y, z$ and $Y_{lm}(\theta, \varphi)$ are the spherical harmonics.
 
 The multipole moments for the exterior expansion are:
 
