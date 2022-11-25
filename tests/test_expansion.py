@@ -81,7 +81,7 @@ class TestMultipoleExpansion(unittest.TestCase):
         sigma = 1
         rho = gaussian((X, Y, Z), (3, 3, 3), sigma) - gaussian((X, Y, Z), (-3, -3, -3), sigma)
         mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho,
-          'xyz': (X, Y, Z)}, l_max=3, interior=True)
+                                              'xyz': (X, Y, Z)}, l_max=3, interior=True)
 
         self.assertAlmostEqual(0, mpe.total_charge, places=4)
 
@@ -100,7 +100,7 @@ class TestMultipoleExpansion(unittest.TestCase):
         mpe_not_exterior = MultipoleExpansion(charges, l_max=3, exterior=False)
 
         np.testing.assert_array_almost_equal(mpe_interior.multipole_contribs((0, 1, 1)),
-            mpe_not_exterior.multipole_contribs((0, 1, 1)), decimal=10)
+                                             mpe_not_exterior.multipole_contribs((0, 1, 1)), decimal=10)
 
     def test_explicit_exterior_expansion_call(self):
         charges = {
@@ -114,19 +114,19 @@ class TestMultipoleExpansion(unittest.TestCase):
         mpe_not_interior = MultipoleExpansion(charges, l_max=3, interior=False)
 
         np.testing.assert_array_almost_equal(mpe_exterior.multipole_contribs((10, 0, 0)),
-            mpe_not_interior.multipole_contribs((10, 0, 0)), decimal=10)
+                                             mpe_not_interior.multipole_contribs((10, 0, 0)), decimal=10)
 
     def test_expansion_type_is_exclusive(self):
         self.assertRaises(InvalidExpansionException, lambda:
-            MultipoleExpansion({}, 2, interior=True, exterior=True))
+        MultipoleExpansion({}, 2, interior=True, exterior=True))
         self.assertRaises(InvalidExpansionException, lambda:
-            MultipoleExpansion({}, 2, interior=False, exterior=False))
+        MultipoleExpansion({}, 2, interior=False, exterior=False))
 
     def test_explict_expansion_type(self):
         self.assertRaises(InvalidChargeDistributionException, lambda:
-            MultipoleExpansion({}, 2, interior=False, exterior=True))
+        MultipoleExpansion({}, 2, interior=False, exterior=True))
         self.assertRaises(InvalidChargeDistributionException, lambda:
-            MultipoleExpansion({}, 2, interior=True, exterior=False))
+        MultipoleExpansion({}, 2, interior=True, exterior=False))
 
     def test_charge_dist_without_discrete_should_raise(self):
         charge_dist = {
@@ -213,6 +213,20 @@ class TestMultipoleExpansion(unittest.TestCase):
         self.assertAlmostEqual(actual[0, 25, 25], 1 / 5., delta=5)
         self.assertTrue(np.all(actual[1:-1, 1:-1, 1:-1] == 0))
         self.assertFalse(np.all(actual[mask] == 0))
+
+    def test_issue_7(self):
+        # Phi(x,y,z) gives different answers if entire system is shifted #7
+        charge_dist = {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 0.5)}, {'q': -1, 'xyz': (0, 0, -1)}]}
+        l_max = 3
+        Phi = MultipoleExpansion(charge_dist, l_max)
+        phi_1 = Phi(0, 0, 0)
+
+        charge_dist = {'discrete': True, 'charges': [{'q': 1, 'xyz': (5, 5, 5.5)}, {'q': -1, 'xyz': (5, 5, 4)}]}
+        l_max = 3
+        Phi = MultipoleExpansion(charge_dist, l_max)
+        phi_2 = Phi(5, 5, 5)
+
+        self.assertAlmostEqual(phi_1, phi_2)
 
 
 def gaussian(XYZ, xyz0, sigma):

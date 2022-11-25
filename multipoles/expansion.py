@@ -221,7 +221,7 @@ class MultipoleExpansion(object):
         if self.charge_dist['discrete']:
             q_lm = 0
             for chg in self.charges:
-                xyz = chg['xyz']
+                xyz = chg['xyz'] - self.center_of_charge
                 q = chg['q']
                 r, phi, theta = cartesian_to_spherical(*xyz)
                 Y_lm = sph_harm(m, l, phi, theta)
