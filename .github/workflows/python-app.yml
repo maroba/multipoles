@@ -1,32 +1,37 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python application
+name: Checks
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "master" ]
-
-permissions:
-  contents: read
-
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['2.7', '3.8', '3.9']
+        os: [ubuntu-latest]
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
       with:
-        python-version: "3.10"
+        python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest numpy scipy
+        # prerequisites
+        python -m pip install --upgrade pip wheel
+        python -m pip install codecov coverage pytest
+        # install dependencies
+        pip install -e .[all]
+        # show installed packages
+        pip freeze
     - name: Test with pytest
       run: |
-        pytest
+        coverage run --source=multipoles -m unittest discover tests
+    - name: Submit code coverage
+      run: |
+        coverage report -m
+        codecov

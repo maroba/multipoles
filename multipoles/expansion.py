@@ -16,11 +16,21 @@ class MultipoleExpansion(object):
         """
         Create a MultipoleExpansion object for a given charge or mass distribution.
 
-        :param charge_dist:    a dict describing the charge distribution (see below)
-        :param l_max:          the maximum multipole moment to consider (0=monopole, 1=dipole, etc.)
-        :param exterior:       whether to perform an exterior expansion (default). If false, interior expansion will be used
-        :param interior:       sytaxic override for exterior expansion parameter
+        Parameters
+        ----------
 
+        charge_dist: dict
+            description of the charge distribution (see below)
+
+        l_max: positive int
+            the maximum multipole moment to consider (0=monopole, 1=dipole, etc.)
+
+        exterior: bool
+            whether to perform an exterior expansion (default).
+            If false, interior expansion will be used
+
+        interior: bool
+            sytaxic override for exterior expansion parameter
 
         The charge_dist dict:
 
@@ -59,6 +69,8 @@ class MultipoleExpansion(object):
         >>> l_max = 2
         >>> Phi = MultipoleExpansion(charge_dist, l_max)
 
+        Then evaluate on any point desired using Phi(...) or Phi[]. See
+        the docstrings of __call__ and __getitem__, respectively.
 
         =========================
         **Example (Continuous)**:
@@ -98,20 +110,23 @@ class MultipoleExpansion(object):
         >>> l_max = 2
         >>> Phi = MultipoleExpansion(charge_dist, l_max)
 
+        Then evaluate on any point desired using Phi(...) or Phi[]. See
+        the docstrings of __call__ and __getitem__, respectively.
+
         """
 
         self.charge_dist = charge_dist
         if exterior is None and interior is None:
-          exterior = True
+            exterior = True
         elif interior is not None and not interior and exterior is not None and not exterior:
-          raise InvalidExpansionException("Either interior or exeterior must be set.")
+            raise InvalidExpansionException("Either interior or exeterior must be set.")
         else:
-          exterior = bool(exterior)
-          interior = bool(interior)
-          exterior = exterior or not interior
-          interior = interior or not exterior
-          if interior and exterior:
-            raise InvalidExpansionException("Interior and exeterior expansion cannot both be set.")
+            exterior = bool(exterior)
+            interior = bool(interior)
+            exterior = exterior or not interior
+            interior = interior or not exterior
+            if interior and exterior:
+                raise InvalidExpansionException("Interior and exeterior expansion cannot both be set.")
 
         self.exterior = exterior
         self.interior = interior
@@ -161,6 +176,59 @@ class MultipoleExpansion(object):
         return self.eval(args, **kwargs)
 
     def __getitem__(self, *mask):
+        """
+        Evaluate multipole expansion on grid points specified by mask
+        or slices.
+
+        Parameters
+        ----------
+        mask: three slices or one mask array
+            Slices or boolean mask defining on which grid points to
+            evaluate the multipole expansion.
+
+        Returns
+        -------
+        Array of shape defined by `mask` with the values evaluated from
+        the multipole expansion.
+
+        Examples
+        --------
+
+        >>> # Define a grid 51x51x51 and a gaussian charge distribution
+        >>> x, y, z = [np.linspace(-5, 5, 51)] * 3
+        >>> X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+        >>> sigma = 1.5
+        >>> rho = gaussian((X, Y, Z), (0, 0, 0), sigma)
+        >>> mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3)
+
+        With the multipole expansion thus defined, we can evaluate using slices
+        or masks.
+
+        1. Evaluating with slices
+
+        >>> actual = mpe[:, :, :]
+
+        `actual` is now a 51x51x51 array with values filled by evaluating
+        the multipole expansion on X, Y, Z.
+
+        >>> actual = mpe[:, :, 0]
+
+        `actual is now a 51x51 array with values filled by evaluating at
+        X[:, :, 0], Y[:, :, 0], Z[:, :, 0]
+
+        2. Evaluating with masks
+
+        Define a boolean mask for the boundary:
+
+        >>> mask = np.ones_like(rho, dtype=bool)
+        >>> mask[1:-1, 1:-1, 1:-1] = False
+
+        Define an empty array and evaluate only multipole expansion only
+        at the boundary:
+
+        >>> actual = np.zeros_like(rho)
+        >>> actual[mask] = mpe[mask]
+        """
         if not isinstance(mask[0], np.ndarray):
             mask = tuple(*mask)
         else:
@@ -178,12 +246,31 @@ class MultipoleExpansion(object):
         return sum(mp_contribs)
 
     def eval(self, xyz, l_max=None):
+        """
+        Evaluate multipole expansion at a point with given coordinates.
+
+        Parameters
+        ----------
+
+        xyz: 3-tuple of floats
+            The x,y,z coordinates of the points where to evaluate the expansion.
+
+        l_max: int, optional
+            The maximum angular momentum to use for the expansion. If no value
+            is given, use l_max from the original computation of the expansion.
+            If l_max is given, only use contributions up to this angular momentum
+            in the evaluation.
+        """
         if l_max is None:
             l_max = self.l_max
-        contribs = self.multipole_contribs(xyz)
-        return sum(contribs[:l_max+1])
+        if l_max > self.l_max:
+            raise ValueError(
+                "Multipole expansion only contains multipoles up to l_max={}.".format(self.l_max)
+            )
+        contribs = self._multipole_contribs(xyz)
+        return sum(contribs[:l_max + 1])
 
-    def multipole_contribs(self, xyz):
+    def _multipole_contribs(self, xyz):
         if not isinstance(xyz, np.ndarray):
             xyz = np.array(xyz)
 
@@ -194,13 +281,13 @@ class MultipoleExpansion(object):
 
         for l in range(self.l_max + 1):
             phi_l = 0
-            for m in range(-l, l+1):
+            for m in range(-l, l + 1):
                 Y_lm = sph_harm(m, l, phi, theta)
                 q_lm = self.multipole_moments[(l, m)]
                 if self.exterior:
-                  phi_l += np.sqrt(4*np.pi/(2*l+1)) * q_lm * Y_lm / r**(l+1)
+                    phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm / r ** (l + 1)
                 else:
-                  phi_l += np.sqrt(4*np.pi/(2*l+1)) * q_lm * Y_lm * r**l
+                    phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm * r ** l
             mp_contribs.append(phi_l.real)
 
         return mp_contribs
@@ -208,15 +295,15 @@ class MultipoleExpansion(object):
     def _calc_multipole_moments(self):
         moments = {}
         for l in range(0, self.l_max + 1):
-            for m in range(0, l+1):
+            for m in range(0, l + 1):
                 moments[(l, m)] = self._calc_multipole_coef(l, m)
                 if m != 0:
-                    moments[(l, -m)] = (-1)**m * np.conj(moments[(l, m)])
+                    moments[(l, -m)] = (-1) ** m * np.conj(moments[(l, m)])
         return moments
 
     def _calc_multipole_coef(self, l, m):
 
-        prefac = np.sqrt(4*np.pi/(2*l+1))
+        prefac = np.sqrt(4 * np.pi / (2 * l + 1))
 
         if self.charge_dist['discrete']:
             q_lm = 0
@@ -226,18 +313,18 @@ class MultipoleExpansion(object):
                 r, phi, theta = cartesian_to_spherical(*xyz)
                 Y_lm = sph_harm(m, l, phi, theta)
                 if self.exterior:
-                  q_lm += q * r**l * np.conj(Y_lm)
+                    q_lm += q * r ** l * np.conj(Y_lm)
                 else:
-                  q_lm += q / r**(l+1) * np.conj(Y_lm)
+                    q_lm += q / r ** (l + 1) * np.conj(Y_lm)
             q_lm *= prefac
             return q_lm.real
         else:
             R, Phi, Theta = self.internal_coords_spherical
             Y_lm = sph_harm(m, l, Phi, Theta)
             if self.exterior:
-              integrand = R**l * self.rho * np.conj(Y_lm)
+                integrand = R ** l * self.rho * np.conj(Y_lm)
             else:
-              integrand = 1/R**(l+1) * self.rho * np.conj(Y_lm)
+                integrand = 1 / R ** (l + 1) * self.rho * np.conj(Y_lm)
             return integrand.sum() * self.dvol * prefac
 
     def _assert_charge_dist(self):
@@ -267,10 +354,9 @@ class InvalidExpansionException(Exception):
 
 
 def cartesian_to_spherical(*coords):
-
     X, Y, Z = coords
-    R = np.sqrt(X**2 + Y**2 + Z**2)
-    R_xy = np.sqrt(X**2 + Y**2)
+    R = np.sqrt(X ** 2 + Y ** 2 + Z ** 2)
+    R_xy = np.sqrt(X ** 2 + Y ** 2)
 
     # the 'where' argument in np.arccos is not working as expected,
     # so handle invalid points manually and turn off floating point
@@ -298,7 +384,6 @@ def cartesian_to_spherical(*coords):
 
 
 def _check_dict_for_keys(d, keys):
-
     msgs = ""
     for key in keys:
         if key not in d:

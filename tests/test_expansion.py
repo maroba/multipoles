@@ -4,6 +4,8 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 import unittest
 import numpy as np
+import numpy.testing as npt
+
 from multipoles.expansion import (
     MultipoleExpansion, InvalidChargeDistributionException, InvalidExpansionException
 )
@@ -21,7 +23,7 @@ class TestMultipoleExpansion(unittest.TestCase):
         self.assertAlmostEqual(1, mpe.total_charge, places=4)
         np.testing.assert_array_almost_equal(mpe.center_of_charge, (0, 0, 0))
 
-        self.assertAlmostEqual(0.1, mpe.multipole_contribs((10, 0, 0))[0], places=4)
+        self.assertAlmostEqual(0.1, mpe._multipole_contribs((10, 0, 0))[0], places=4)
 
     def test_gaussian_monopole_at_off_center(self):
         x, y, z = [np.linspace(-5, 5, 51)] * 3
@@ -30,7 +32,7 @@ class TestMultipoleExpansion(unittest.TestCase):
         rho = gaussian((X, Y, Z), (1, 0, 0), sigma)
         mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=2)
 
-        self.assertAlmostEqual(0.1, mpe.multipole_contribs((11, 0, 0))[0], places=4)
+        self.assertAlmostEqual(0.1, mpe._multipole_contribs((11, 0, 0))[0], places=4)
 
     def test_gaussian_dipole_at_center(self):
         x, y, z = [np.linspace(-5, 5, 51)] * 3
@@ -44,7 +46,7 @@ class TestMultipoleExpansion(unittest.TestCase):
         # dipole term for point charges obtained from hand calculation: q1,-1 = -sqrt(2), q10 = 0
         #  ==> phi_1(10e_x) = 0.02, but octupole also contributes to total phi!
 
-        phi_l = mpe.multipole_contribs((10, 0, 0))
+        phi_l = mpe._multipole_contribs((10, 0, 0))
         np.testing.assert_array_almost_equal((0, 0.02, 0, 0), phi_l, decimal=3)
 
         self.assertAlmostEqual(mpe.eval((10, 0, 0), 3), 1 / 9. - 1 / 11., places=3)
@@ -59,7 +61,7 @@ class TestMultipoleExpansion(unittest.TestCase):
             ]
         }, l_max=3)
 
-        np.testing.assert_array_almost_equal((0, 0.02, 0, 0), mpe.multipole_contribs((10, 0, 0)), decimal=3)
+        np.testing.assert_array_almost_equal((0, 0.02, 0, 0), mpe._multipole_contribs((10, 0, 0)), decimal=3)
 
     def test_surrounding_point_charges(self):
         mpe = MultipoleExpansion({
@@ -99,8 +101,8 @@ class TestMultipoleExpansion(unittest.TestCase):
         mpe_interior = MultipoleExpansion(charges, l_max=3, interior=True)
         mpe_not_exterior = MultipoleExpansion(charges, l_max=3, exterior=False)
 
-        np.testing.assert_array_almost_equal(mpe_interior.multipole_contribs((0, 1, 1)),
-                                             mpe_not_exterior.multipole_contribs((0, 1, 1)), decimal=10)
+        np.testing.assert_array_almost_equal(mpe_interior._multipole_contribs((0, 1, 1)),
+                                             mpe_not_exterior._multipole_contribs((0, 1, 1)), decimal=10)
 
     def test_explicit_exterior_expansion_call(self):
         charges = {
@@ -113,8 +115,8 @@ class TestMultipoleExpansion(unittest.TestCase):
         mpe_exterior = MultipoleExpansion(charges, l_max=3, exterior=True)
         mpe_not_interior = MultipoleExpansion(charges, l_max=3, interior=False)
 
-        np.testing.assert_array_almost_equal(mpe_exterior.multipole_contribs((10, 0, 0)),
-                                             mpe_not_interior.multipole_contribs((10, 0, 0)), decimal=10)
+        np.testing.assert_array_almost_equal(mpe_exterior._multipole_contribs((10, 0, 0)),
+                                             mpe_not_interior._multipole_contribs((10, 0, 0)), decimal=10)
 
     def test_expansion_type_is_exclusive(self):
         self.assertRaises(InvalidExpansionException, lambda:
@@ -195,6 +197,14 @@ class TestMultipoleExpansion(unittest.TestCase):
 
         self.assertEqual(3, actual.ndim)
         self.assertAlmostEqual(actual[0, 25, 25], 1 / 5., delta=5)
+
+        actual = mpe[:, :, :]
+        self.assertEqual(3, actual.ndim)
+        self.assertAlmostEqual(actual[0, 25, 25], 1 / 5., delta=5)
+
+        actual = mpe[:, :, 0]
+        self.assertEqual(2, actual.ndim)
+        npt.assert_array_equal((51, 51), actual.shape)
 
     def test_gaussian_at_center_evaluate_with_mask(self):
         x, y, z = [np.linspace(-5, 5, 51)] * 3
