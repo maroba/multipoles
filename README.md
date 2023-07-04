@@ -121,7 +121,3 @@ Simply use `pip`:
 ```
 pip install multipoles
 ```
-
-## Dependencies
-
-`multipoles` uses `numpy` for fast array processing and `scipy` for support of spherical harmonics.
