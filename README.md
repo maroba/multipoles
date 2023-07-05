@@ -119,5 +119,5 @@ value = Phi(x, y, z)
 Simply use `pip`:
 
 ```
-pip install multipoles
+pip install --upgrade multipoles
 ```
