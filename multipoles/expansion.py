@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.special import sph_harm
+from scipy.integrate import simpson
 
 
 class MultipoleExpansion(object):
@@ -152,7 +153,8 @@ class MultipoleExpansion(object):
             rho = charge_dist['rho']
             X, Y, Z = charge_dist['xyz']
 
-            self.dvol = (X[1, 0, 0] - X[0, 0, 0]) * (Y[0, 1, 0] - Y[0, 0, 0]) * (Z[0, 0, 1] - Z[0, 0, 0])
+            self.dxyz = (X[1, 0, 0] - X[0, 0, 0]), (Y[0, 1, 0] - Y[0, 0, 0]), (Z[0, 0, 1] - Z[0, 0, 0])
+            self.dvol = np.prod(self.dxyz)
             self.external_coords = X, Y, Z
             self.rho = rho
             self.total_charge = np.sum(rho) * self.dvol
@@ -325,7 +327,15 @@ class MultipoleExpansion(object):
                 integrand = R ** l * self.rho * np.conj(Y_lm)
             else:
                 integrand = 1 / R ** (l + 1) * self.rho * np.conj(Y_lm)
-            return integrand.sum() * self.dvol * prefac
+            return self._integrate(integrand) * prefac
+
+    def _integrate(self, integrand):
+        return simpson(
+            simpson(
+                simpson(integrand,
+                        dx=self.dxyz[2], axis=-1),
+                dx=self.dxyz[1], axis=-1
+            ), dx=self.dxyz[0], axis=-1)
 
     def _assert_charge_dist(self):
 

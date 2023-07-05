@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.abspath('..'))
 import unittest
 import numpy as np
 import numpy.testing as npt
+from scipy.special import erf
 
 from multipoles.expansion import (
     MultipoleExpansion, InvalidChargeDistributionException, InvalidExpansionException
@@ -14,16 +15,24 @@ from multipoles.expansion import (
 class TestMultipoleExpansion(unittest.TestCase):
 
     def test_gaussian_monopole_at_center(self):
-        x, y, z = [np.linspace(-5, 5, 51)] * 3
+        x, y, z = [np.linspace(-10, 10, 51)] * 3
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
         sigma = 1.5
         rho = gaussian((X, Y, Z), (0, 0, 0), sigma)
-        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=2)
+        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=8)
 
         self.assertAlmostEqual(1, mpe.total_charge, places=4)
         np.testing.assert_array_almost_equal(mpe.center_of_charge, (0, 0, 0))
 
         self.assertAlmostEqual(0.1, mpe._multipole_contribs((10, 0, 0))[0], places=4)
+
+        #R = np.sqrt(X**2 + Y**2 + Z**2)
+        #b = np.ones_like(R, dtype=bool)
+        #b[1:-1, 1:-1, 1:-1] = False
+        #npt.assert_array_almost_equal(
+        #    erf(R[b] / sigma) / R[b],
+        #    mpe[b]
+        #)
 
     def test_gaussian_monopole_at_off_center(self):
         x, y, z = [np.linspace(-5, 5, 51)] * 3
