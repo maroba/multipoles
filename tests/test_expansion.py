@@ -8,40 +8,79 @@ import numpy.testing as npt
 from scipy.special import erf
 
 from multipoles.expansion import (
-    MultipoleExpansion, InvalidChargeDistributionException, InvalidExpansionException
+    MultipoleExpansion, InvalidChargeDistributionException, InvalidExpansionException, cartesian_to_spherical
 )
 
 
 class TestMultipoleExpansion(unittest.TestCase):
 
     def test_gaussian_monopole_at_center(self):
-        x, y, z = [np.linspace(-10, 10, 51)] * 3
+        x, y, z = [np.linspace(-7, 7, 51)] * 3
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
         sigma = 1.5
         rho = gaussian((X, Y, Z), (0, 0, 0), sigma)
-        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=8)
+        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=4)
 
         self.assertAlmostEqual(1, mpe.total_charge, places=4)
         np.testing.assert_array_almost_equal(mpe.center_of_charge, (0, 0, 0))
 
         self.assertAlmostEqual(0.1, mpe._multipole_contribs((10, 0, 0))[0], places=4)
 
-        #R = np.sqrt(X**2 + Y**2 + Z**2)
-        #b = np.ones_like(R, dtype=bool)
-        #b[1:-1, 1:-1, 1:-1] = False
-        #npt.assert_array_almost_equal(
-        #    erf(R[b] / sigma) / R[b],
-        #    mpe[b]
-        #)
+        R = np.sqrt(X ** 2 + Y ** 2 + Z ** 2)
+        b = np.ones_like(R, dtype=bool)
+        b[1:-1, 1:-1, 1:-1] = False
+
+        r = 20
+        self.assertAlmostEqual(
+            erf(r / sigma) / r,
+            mpe(r, 0, 0), places=5
+        )
+        self.assertAlmostEqual(
+            erf(r / sigma) / r,
+            mpe(0, r, 0), places=5
+        )
+        self.assertAlmostEqual(
+            erf(r / sigma) / r,
+            mpe(0, 0, r), places=5
+        )
 
     def test_gaussian_monopole_at_off_center(self):
         x, y, z = [np.linspace(-5, 5, 51)] * 3
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
         sigma = 1.5
         rho = gaussian((X, Y, Z), (1, 0, 0), sigma)
-        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=2)
+        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=8)
 
-        self.assertAlmostEqual(0.1, mpe._multipole_contribs((11, 0, 0))[0], places=4)
+        def dist(xyz1, xyz2):
+            return np.sqrt(sum((np.array(xyz1) - np.array(xyz2)) ** 2))
+
+        P = (20, 0, 0)
+        r = dist(P, (1, 0, 0))
+        npt.assert_almost_equal(
+            erf(r / sigma) / r,
+            mpe(*P), decimal=5
+        )
+
+        P = (0, 20, 0)
+        r = dist(P, (1, 0, 0))
+        npt.assert_almost_equal(
+            erf(r / sigma) / r,
+            mpe(*P), decimal=5
+        )
+
+        P = (0, 0, 20)
+        r = dist(P, (1, 0, 0))
+        npt.assert_almost_equal(
+            erf(r / sigma) / r,
+            mpe(*P), decimal=5
+        )
+
+        P = (20, 20, 20)
+        r = dist(P, (1, 0, 0))
+        npt.assert_almost_equal(
+            erf(r / sigma) / r,
+            mpe(*P), decimal=5
+        )
 
     def test_gaussian_dipole_at_center(self):
         x, y, z = [np.linspace(-5, 5, 51)] * 3
@@ -246,6 +285,36 @@ class TestMultipoleExpansion(unittest.TestCase):
         phi_2 = Phi(5, 5, 5)
 
         self.assertAlmostEqual(phi_1, phi_2)
+
+    def test_internal_coordinates_spherical(self):
+        x, y, z = [np.linspace(-5, 5, 51)] * 3
+        X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+        sigma = 1.5
+        rho = gaussian((X, Y, Z), (0, 0, 0), sigma)
+        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3)
+
+        R, Phi, Theta = mpe.internal_coords_spherical
+        self.assertAlmostEqual(np.max(R), np.sqrt(3) * 5)
+        self.assertAlmostEqual(np.min(Phi), -np.pi)
+        self.assertAlmostEqual(np.max(Theta), np.pi)
+
+
+class TestCartesianToSpherical(unittest.TestCase):
+
+    def test_works(self):
+        pi = np.pi
+
+        actual = cartesian_to_spherical(1, 0, 0)
+        expected = (1, 0, pi / 2)
+        npt.assert_array_equal(expected, actual)
+
+        actual = cartesian_to_spherical(0, 1, 0)
+        expected = (1, pi / 2, pi / 2)
+        npt.assert_array_equal(expected, actual)
+
+        actual = cartesian_to_spherical(0, -1, 0)
+        expected = (1, -pi / 2, pi / 2)
+        npt.assert_array_equal(expected, actual)
 
 
 def gaussian(XYZ, xyz0, sigma):

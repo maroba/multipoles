@@ -5,7 +5,7 @@
 
 ## Background
 
-For a given function $\rho(x,y,z)$, the solution $\Ph   i(x,y,z)$ of the Poisson equation $\nabla^2\Phi=4\pi \rho$ with vanishing Dirichlet boundary conditions at infinity is
+For a given function $\rho(x,y,z)$, the solution $\Ph   i(x,y,z)$ of the Poisson equation $\nabla^2\Phi=-4\pi \rho$ with vanishing Dirichlet boundary conditions at infinity is
 
 $$\Phi(x,y,z)=-\int d^3r'\frac{\rho(r')}{|r-r'|}$$
 

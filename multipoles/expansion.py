@@ -291,16 +291,15 @@ class MultipoleExpansion(object):
                 else:
                     phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm * r ** l
             mp_contribs.append(phi_l.real)
-
         return mp_contribs
 
     def _calc_multipole_moments(self):
         moments = {}
         for l in range(0, self.l_max + 1):
-            for m in range(0, l + 1):
+            for m in range(-l, l + 1):
                 moments[(l, m)] = self._calc_multipole_coef(l, m)
-                if m != 0:
-                    moments[(l, -m)] = (-1) ** m * np.conj(moments[(l, m)])
+                #if m != 0:
+                #    moments[(l, -m)] = (-1) ** m * np.conj(moments[(l, m)])
         return moments
 
     def _calc_multipole_coef(self, l, m):
@@ -375,7 +374,7 @@ def cartesian_to_spherical(*coords):
     np.seterr(all='ignore')
 
     if hasattr(R_xy, '__len__'):
-        Phi = np.arccos(X / R_xy)
+        Phi = np.arctan2(Y, X)
         Phi[R_xy == 0] = 0
         Theta = np.arccos(Z / R)
         Theta[R == 0] = np.pi / 2
@@ -383,7 +382,7 @@ def cartesian_to_spherical(*coords):
         if R_xy == 0:
             Phi = 0
         else:
-            Phi = np.arccos(X / R_xy)
+            Phi = np.arctan2(Y, X)
         if R == 0:
             Theta = np.pi / 2
         else:
