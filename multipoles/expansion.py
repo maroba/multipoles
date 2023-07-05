@@ -298,8 +298,6 @@ class MultipoleExpansion(object):
         for l in range(0, self.l_max + 1):
             for m in range(-l, l + 1):
                 moments[(l, m)] = self._calc_multipole_coef(l, m)
-                #if m != 0:
-                #    moments[(l, -m)] = (-1) ** m * np.conj(moments[(l, m)])
         return moments
 
     def _calc_multipole_coef(self, l, m):
