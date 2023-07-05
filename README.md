@@ -7,7 +7,7 @@
 
 For a given function $\rho(x,y,z)$, the solution $\Phi(x,y,z)$ of the Poisson equation $\nabla^2\Phi=-4\pi \rho$ with vanishing Dirichlet boundary conditions at infinity is
 
-$$\Phi(x,y,z)=-\int d^3r'\frac{\rho(r')}{|r-r'|}$$
+$$\Phi(x,y,z)=\int d^3r'\frac{\rho(r')}{|r-r'|}$$
 
 Examples of this are the electrostatic and Newtonian gravitational potential.
 If you need to evaluate $\Phi(x,y,z)$ at many points, calculating the integral for each point is computationally expensive. As a faster alternative, we can express $\Phi(x,y,z)$ in terms of the multipole moments $q_{lm}$ or $I_{lm}$ (note some literature uses the subscripts $(\cdot)_{nm}$):
