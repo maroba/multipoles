@@ -237,6 +237,14 @@ class MultipoleExpansion(object):
             mask = mask[0]
         mp_contribs = []
         r, phi, theta = self.internal_coords_spherical
+
+        eps = 1.E-6
+        if isinstance(r, np.ndarray):
+            r[np.abs(r) < eps] = eps
+        else:
+            if abs(r) < eps:
+                r = eps
+
         for l in range(self.l_max + 1):
             phi_l = 0
             for m in range(-l, l + 1):
@@ -278,6 +286,13 @@ class MultipoleExpansion(object):
 
         xyz_internal = xyz - self.center_of_charge
         r, phi, theta = cartesian_to_spherical(*xyz_internal)
+
+        eps = 1.E-6
+        if isinstance(r, np.ndarray):
+            r[np.abs(r) < eps] = eps
+        else:
+            if abs(r) < eps:
+                r = eps
 
         mp_contribs = []
 
