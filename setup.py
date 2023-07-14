@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='multipoles',
-    version='0.3.4',
+    version='0.4.0',
     description='A Python package for multipole expansions of electrostatic or gravitational potentials',
     long_description="""*multipoles* is a Python package for multipole expansions of the solutions of the Poisson equation     
        (e.g. electrostatic or gravitational potentials). It can handle discrete and continuous charge or mass distributions.
