@@ -1,4 +1,4 @@
-                    ## How to contribute to *multipoles*
+## How to contribute to *multipoles*
 
 #### **Did you find a bug?**
 
