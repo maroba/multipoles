@@ -254,23 +254,46 @@ class TestMultipoleExpansion(unittest.TestCase):
         self.assertEqual(2, actual.ndim)
         npt.assert_array_equal((51, 51), actual.shape)
 
-    def test_gaussian_at_center_evaluate_with_mask(self):
+    def test_gaussian_at_center_evaluate_with_1d_array(self):
         x, y, z = [np.linspace(-5, 5, 51)] * 3
         X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
         sigma = 1.5
         rho = gaussian((X, Y, Z), (0, 0, 0), sigma)
         mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3)
 
-        mask = np.ones_like(rho, dtype=bool)
-        mask[1:-1, 1:-1, 1:-1] = False
-        actual = np.zeros_like(rho)
-        actual[mask] = mpe[mask]
+        where_to_eval = np.linspace(100, 200, 10)
+        expected = [mpe(x, 0, 0) for x in where_to_eval]
 
-        self.assertEqual(3, actual.ndim)
-        self.assertEqual(actual.shape, rho.shape)
-        self.assertAlmostEqual(actual[0, 25, 25], 1 / 5., delta=5)
-        self.assertTrue(np.all(actual[1:-1, 1:-1, 1:-1] == 0))
-        self.assertFalse(np.all(actual[mask] == 0))
+        # evaluate by three 1D arrays
+        actual = mpe(where_to_eval, [0] * len(where_to_eval), [0] * len(where_to_eval))
+        npt.assert_allclose(expected, actual)
+
+        # evaluate by one 1D array, should automatically expand numbers to arrays
+        actual = mpe(where_to_eval, 0, 0)
+        npt.assert_allclose(expected, actual)
+
+        # evaluate by two 1D array, should automatically expand number to arrays
+        actual = mpe(where_to_eval, where_to_eval, 0)
+        expected = [mpe(x, x, 0) for x in where_to_eval]
+        npt.assert_allclose(expected, actual)
+
+    def test_gaussian_dipole_at_center(self):
+        x, y, z = [np.linspace(-5, 5, 51)] * 3
+        X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+        sigma = 1.5
+        rho = gaussian((X, Y, Z), (1, 0, 0), sigma) - gaussian((X, Y, Z), (-1, 0, 0), sigma)
+        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3)
+
+        self.assertAlmostEqual(0, mpe.total_charge, places=4)
+
+        # dipole term for point charges obtained from hand calculation: q1,-1 = -sqrt(2), q10 = 0
+        #  ==> phi_1(10e_x) = 0.02, but octupole also contributes to total phi!
+
+        phi_l = mpe._multipole_contribs((10, 0, 0))
+        np.testing.assert_array_almost_equal((0, 0.02, 0, 0), phi_l, decimal=3)
+
+        self.assertAlmostEqual(mpe.eval((10, 0, 0), 3), 1 / 9. - 1 / 11., places=3)
+        self.assertAlmostEqual(mpe(10, 0, 0), 1 / 9. - 1 / 11., places=3)
 
     def test_issue_7(self):
         # Phi(x,y,z) gives different answers if entire system is shifted #7

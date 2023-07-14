@@ -1,4 +1,5 @@
 import numpy as np
+import numbers
 from scipy.special import sph_harm
 from scipy.integrate import simpson
 
@@ -262,8 +263,11 @@ class MultipoleExpansion(object):
         Parameters
         ----------
 
-        xyz: 3-tuple of floats
+        xyz: 3-tuple of (floats or arrays)
             The x,y,z coordinates of the points where to evaluate the expansion.
+            If three floats are given, then only one point with coordinates (x, y, z)
+            is evaluated. If three arrays xyz=(x, y, z) are given, the evaluation is done at each
+            point (x[i], y[i], z[i]).
 
         l_max: int, optional
             The maximum angular momentum to use for the expansion. If no value
@@ -277,9 +281,38 @@ class MultipoleExpansion(object):
             raise ValueError(
                 "Multipole expansion only contains multipoles up to l_max={}.".format(self.l_max)
             )
-        contribs = self._multipole_contribs(xyz)
-        return sum(contribs[:l_max + 1])
-
+        assert isinstance(xyz, tuple) and len(xyz) == 3
+        
+        if any(hasattr(item, "__len__") for item in xyz): # some args are array-like            
+            # All passed arrays must have same length. Validate this and determine this
+            # length.
+            len_array = None            
+            for item in xyz:
+                if hasattr(item, "__len__"):
+                    if len_array is None:
+                        len_array = len(item)
+                    else:
+                        if len(item) != len_array:
+                            raise ValueError(f"All arrays must have the same length. Received: {len_array} != {len(item)}")                    
+            
+            # If numbers are passed along with arrays, expand the numbers to constant
+            # arrays of the right size.
+            xyz = list(xyz)
+            for i in range(3):                
+                if isinstance(xyz[i], numbers.Number):
+                    xyz[i] = np.ones(len_array) * xyz[i]
+            xyz = tuple(xyz)
+            
+            # Now do the evaluation
+            return np.array(
+                [sum(self._multipole_contribs((x, y, z))[:l_max + 1]) for x, y, z in zip(*xyz)]
+            )
+        elif all(isinstance(item, numbers.Number) for item in xyz):
+            # only numbers were passed; evaluate at single point      
+            return sum(self._multipole_contribs(xyz)[:l_max + 1])        
+        else:            
+            raise ValueError("Only triple of floats or tripe of arrays allowed.")
+        
     def _multipole_contribs(self, xyz):
         if not isinstance(xyz, np.ndarray):
             xyz = np.array(xyz)
