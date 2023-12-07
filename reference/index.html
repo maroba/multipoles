@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>API Reference - multipoles Docs</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "API Reference";
+        var mkdocs_page_input_path = "reference.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> multipoles Docs
+        </a>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../usage/">Usage</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../theory/">Theory</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">API Reference</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#multipoles.MultipoleExpansion">MultipoleExpansion</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#multipoles.MultipoleExpansion.__init__">__init__()</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#multipoles.MultipoleExpansion.__init__--examples">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#multipoles.MultipoleExpansion.__call__">__call__()</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">multipoles Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="api-reference">API Reference</h1>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h2 id="multipoles.MultipoleExpansion" class="doc doc-heading">
+          <code>multipoles.MultipoleExpansion</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code>object</code></p>
+
+  
+      <p>Perform a multipole expansion for a given charge or mass distribution.</p>
+<p>Determines the spherical multipole moments of the given distribution and
+can calculate the solution of the electrostatic or gravitational potential
+based on the multipole expansion.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="multipoles.MultipoleExpansion.__init__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">charge_dist</span><span class="p">,</span> <span class="n">l_max</span><span class="p">,</span> <span class="n">exterior</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interior</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a MultipoleExpansion object for a given charge or mass distribution.</p>
+
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>charge_dist</code></b>
+                  (<code>dict</code>)
+              –
+              <div class="doc-md-description">
+                <p>description of the charge distribution</p>
+<p>For discrete charge distributions (point charges) the dict MUST contain the
+following (key:value)-pairs:</p>
+<p><code>'discrete'</code>:    True</p>
+<p><code>'q'</code>:           the charge (positive or negative floating point number)</p>
+<p><code>'xyz'</code>:         the location of the charge in cartesian coordinates
+                    (a tuple, list or array of length 3)</p>
+<p>For continuous charge distributions (charge density) the dict MUST contain the
+following items:</p>
+<p>'discrete':    False
+   'rho':         the 3D charge distribution (3D numpy array)
+   'xyz':         the domain of the charge distribution
+                  (3-tuple of 3D coordinate arrays, see example below)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>l_max</code></b>
+                  (<code>int</code>)
+              –
+              <div class="doc-md-description">
+                <p>the maximum multipole moment to consider (0=monopole, 1=dipole, etc.)</p>
+              </div>
+            </li>
+            <li>
+              <b><code>exterior</code></b>
+                  (<code>bool</code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>whether to perform an exterior expansion (default).
+    If false, interior expansion will be used.</p>
+              </div>
+            </li>
+            <li>
+              <b><code>interior</code></b>
+                  (<code>bool</code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>syntactic override for exterior expansion parameter</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>      <h5 id="multipoles.MultipoleExpansion.__init__--examples">Examples</h5>
+<p>As example for a discrete charge distribution we model two point charges with
+positive and negative unit charge located on the z-axis:</p>
+<pre><code>&gt;&gt;&gt; from multipoles import MultipoleExpansion
+</code></pre>
+<p>Prepare the charge distribution dict for the MultipoleExpansion object:</p>
+<pre><code>&gt;&gt;&gt; charge_dist = {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 1)}, {'q': -1, 'xyz': (0, 0, -1)}]}
+&gt;&gt;&gt; l_max = 2
+&gt;&gt;&gt; Phi = MultipoleExpansion(charge_dist, l_max)
+</code></pre>
+<p>Then evaluate on any point desired using Phi(...) or Phi[]. See
+the docstrings of <strong>call</strong> and <strong>getitem</strong>, respectively.</p>
+<p>As an example for a continuous charge distribution, we smear out the point charges from the previous example:</p>
+<pre><code>&gt;&gt;&gt; from multipoles import MultipoleExpansion
+&gt;&gt;&gt; import numpy as np
+</code></pre>
+<p>First we set up our grid, a cube of length 10 centered at the origin:</p>
+<pre><code>&gt;&gt;&gt; npoints = 101
+&gt;&gt;&gt; edge = 10
+&gt;&gt;&gt; x, y, z = [np.linspace(-edge/2., edge/2., npoints)]*3
+&gt;&gt;&gt; XYZ = np.meshgrid(x, y, z, indexing='ij')
+</code></pre>
+<p>We model our smeared out charges as gaussian functions:</p>
+<pre><code>&gt;&gt;&gt; def gaussian(XYZ, xyz0, sigma):
+&gt;&gt;&gt;    g = np.ones_like(XYZ[0])
+&gt;&gt;&gt;    for k in range(3):
+&gt;&gt;&gt;        g *= np.exp(-(XYZ[k] - xyz0[k])**2 / sigma**2)
+&gt;&gt;&gt;    g *= (sigma**2*np.pi)**-1.5
+&gt;&gt;&gt;    return g
+</code></pre>
+<p>The width of our gaussians:</p>
+<pre><code>&gt;&gt;&gt; sigma = 1.5
+</code></pre>
+<p>Initialize the charge density rho, which is a 3D numpy array:</p>
+<pre><code>&gt;&gt;&gt; rho = gaussian(XYZ, (0, 0, 1), sigma) - gaussian(XYZ, (0, 0, -1), sigma)
+</code></pre>
+<p>Prepare the charge distribution dict for the MultipoleExpansion object:</p>
+<pre><code>&gt;&gt;&gt; charge_dist = {'discrete': False, 'rho': rho, 'xyz': XYZ}
+</code></pre>
+<p>The rest is the same as for the discrete case:</p>
+<pre><code>&gt;&gt;&gt; l_max = 2
+&gt;&gt;&gt; Phi = MultipoleExpansion(charge_dist, l_max)
+</code></pre>
+<p>Then evaluate on any point desired using Phi(...) or Phi[]. See
+the docstrings of <strong>call</strong> and <strong>getitem</strong>, respectively.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="multipoles.MultipoleExpansion.__call__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">xyz</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Evaluate multipole expansion at a point with given coordinates.</p>
+
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>xyz</code></b>
+                  (<code>3-tuple of floats|array</code>, default:
+                      <code>()</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>The x,y,z coordinates of the points where to evaluate the expansion.
+If three floats are given, then only one point with coordinates (x, y, z)
+is evaluated. If three arrays xyz=(x, y, z) are given, the evaluation is done at each
+point (x[i], y[i], z[i]).</p>
+              </div>
+            </li>
+            <li>
+              <b><code>l_max</code></b>
+                  (<code>int</code>, default:
+                      <code>None</code>
+)
+              –
+              <div class="doc-md-description">
+                <p>The maximum angular momentum to use for the expansion.
+If no value is given, use l_max from the original computation of the expansion.
+If l_max is given, only use contributions up to this angular momentum
+in the evaluation.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../theory/" class="btn btn-neutral float-left" title="Theory"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../theory/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../javascripts/mathjax.js"></script>
+      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
