@@ -3,7 +3,20 @@
 
 *multipoles* is a Python package for multipole expansions of the solutions of the Poisson equation (e.g. electrostatic or gravitational potentials). It can handle discrete and continuous charge or mass distributions.
 
-## Background
+
+## Installation
+
+Simply use `pip`:
+
+```
+pip install --upgrade multipoles
+```
+
+## Documentation
+
+The documentation is available [here](https://maroba.github.io/multipoles/).
+
+## Theory
 
 For a given function $\rho(x,y,z)$, the solution $\Phi(x,y,z)$ of the Poisson equation $\nabla^2\Phi=-4\pi \rho$ with vanishing Dirichlet boundary conditions at infinity is
 
@@ -112,12 +125,4 @@ Phi = MultipoleExpansion(charge_dist, l_max)
 
 x, y, z = 30.5, 30.6, 30.7
 value = Phi(x, y, z)
-```
-
-## Installation
-
-Simply use `pip`:
-
-```
-pip install --upgrade multipoles
 ```
