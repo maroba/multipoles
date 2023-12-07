@@ -5,8 +5,7 @@ from scipy.integrate import simpson
 
 
 class MultipoleExpansion(object):
-    """
-    Perform a multipole expansion for a given charge or mass distribution.
+    """Perform a multipole expansion for a given charge or mass distribution.
 
     Determines the spherical multipole moments of the given distribution and
     can calculate the solution of the electrostatic or gravitational potential
@@ -14,103 +13,89 @@ class MultipoleExpansion(object):
     """
 
     def __init__(self, charge_dist, l_max, exterior=None, interior=None):
+        """Create a MultipoleExpansion object for a given charge or mass distribution.
 
-        """
-        Create a MultipoleExpansion object for a given charge or mass distribution.
+        Args:
+            charge_dist (dict): description of the charge distribution
 
-        Parameters
-        ----------
+               For discrete charge distributions (point charges) the dict MUST contain the
+               following (key:value)-pairs:
 
-        charge_dist: dict
-            description of the charge distribution (see below)
+                   `'discrete'`:    True
 
-        l_max: positive int
-            the maximum multipole moment to consider (0=monopole, 1=dipole, etc.)
+                   `'q'`:           the charge (positive or negative floating point number)
 
-        exterior: bool
-            whether to perform an exterior expansion (default).
-            If false, interior expansion will be used
+                   `'xyz'`:         the location of the charge in cartesian coordinates
+                                    (a tuple, list or array of length 3)
 
-        interior: bool
-            sytaxic override for exterior expansion parameter
+                For continuous charge distributions (charge density) the dict MUST contain the
+                following items:
 
-        The charge_dist dict:
+                   'discrete':    False
+                   'rho':         the 3D charge distribution (3D numpy array)
+                   'xyz':         the domain of the charge distribution
+                                  (3-tuple of 3D coordinate arrays, see example below)
 
-           For discrete charge distributions (point charges) the dict MUST contain the
-           following items:
+            l_max (int): the maximum multipole moment to consider (0=monopole, 1=dipole, etc.)
 
-               Key           Value
-               ------------------------------------------------------------------------
-               'discrete'    True
-               'q'           the charge (positive or negative floating point number)
-               'xyz'         the location of the charge in cartesian coordinates
-                             (a tuple, list or array of length 3)
+            exterior (bool): whether to perform an exterior expansion (default).
+                    If false, interior expansion will be used.
 
-            For continuous charge distributions (charge density) the dict MUST contain the
-            following items:
+            interior (bool): syntactic override for exterior expansion parameter
 
-               Key           Value
-               ------------------------------------------------------------------------
-               'discrete'    False
-               'rho'         the 3D charge distribution (3D numpy array)
-               'xyz'         the domain of the charge distribution
-                             (3-tuple of 3D coordinate arrays, see example below)
-
-
-        =======================
-        **Example (Discrete)**:
+        ## Examples
 
         As example for a discrete charge distribution we model two point charges with
         positive and negative unit charge located on the z-axis:
 
-        >>> from multipoles import MultipoleExpansion
+            >>> from multipoles import MultipoleExpansion
 
         Prepare the charge distribution dict for the MultipoleExpansion object:
 
-        >>> charge_dist = {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 1)}, {'q': -1, 'xyz': (0, 0, -1)}]}
-        >>> l_max = 2
-        >>> Phi = MultipoleExpansion(charge_dist, l_max)
+            >>> charge_dist = {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 1)}, {'q': -1, 'xyz': (0, 0, -1)}]}
+            >>> l_max = 2
+            >>> Phi = MultipoleExpansion(charge_dist, l_max)
 
         Then evaluate on any point desired using Phi(...) or Phi[]. See
         the docstrings of __call__ and __getitem__, respectively.
 
-        =========================
-        **Example (Continuous)**:
-
         As an example for a continuous charge distribution, we smear out the point charges from the previous example:
 
-        >>> from multipoles import MultipoleExpansion
-        >>> import numpy as np
+            >>> from multipoles import MultipoleExpansion
+            >>> import numpy as np
 
         First we set up our grid, a cube of length 10 centered at the origin:
 
-        >>> npoints = 101
-        >>> edge = 10
-        >>> x, y, z = [np.linspace(-edge/2., edge/2., npoints)]*3
-        >>> XYZ = np.meshgrid(x, y, z, indexing='ij')
+            >>> npoints = 101
+            >>> edge = 10
+            >>> x, y, z = [np.linspace(-edge/2., edge/2., npoints)]*3
+            >>> XYZ = np.meshgrid(x, y, z, indexing='ij')
 
         We model our smeared out charges as gaussian functions:
 
-        >>> def gaussian(XYZ, xyz0, sigma):
-        >>>    g = np.ones_like(XYZ[0])
-        >>>    for k in range(3):
-        >>>        g *= np.exp(-(XYZ[k] - xyz0[k])**2 / sigma**2)
-        >>>    g *= (sigma**2*np.pi)**-1.5
-        >>>    return g
+            >>> def gaussian(XYZ, xyz0, sigma):
+            >>>    g = np.ones_like(XYZ[0])
+            >>>    for k in range(3):
+            >>>        g *= np.exp(-(XYZ[k] - xyz0[k])**2 / sigma**2)
+            >>>    g *= (sigma**2*np.pi)**-1.5
+            >>>    return g
 
         The width of our gaussians:
-        >>> sigma = 1.5
+
+            >>> sigma = 1.5
 
         Initialize the charge density rho, which is a 3D numpy array:
-        >>> rho = gaussian(XYZ, (0, 0, 1), sigma) - gaussian(XYZ, (0, 0, -1), sigma)
+
+            >>> rho = gaussian(XYZ, (0, 0, 1), sigma) - gaussian(XYZ, (0, 0, -1), sigma)
 
         Prepare the charge distribution dict for the MultipoleExpansion object:
 
-        >>> charge_dist = {'discrete': False, 'rho': rho, 'xyz': XYZ}
+            >>> charge_dist = {'discrete': False, 'rho': rho, 'xyz': XYZ}
 
         The rest is the same as for the discrete case:
-        >>> l_max = 2
-        >>> Phi = MultipoleExpansion(charge_dist, l_max)
+
+            >>> l_max = 2
+            >>> Phi = MultipoleExpansion(charge_dist, l_max)
 
         Then evaluate on any point desired using Phi(...) or Phi[]. See
         the docstrings of __call__ and __getitem__, respectively.
@@ -175,8 +160,22 @@ class MultipoleExpansion(object):
         # The multipole moments are a dict with (l,m) as keys
         self.multipole_moments = self._calc_multipole_moments()
 
-    def __call__(self, *args, **kwargs):
-        return self.eval(args, **kwargs)
+    def __call__(self, *xyz, l_max=None):
+        """Evaluate multipole expansion at a point with given coordinates.
+
+        Args:
+            xyz (3-tuple of floats|array): The x,y,z coordinates of the points where to evaluate the expansion.
+                If three floats are given, then only one point with coordinates (x, y, z)
+                is evaluated. If three arrays xyz=(x, y, z) are given, the evaluation is done at each
+                point (x[i], y[i], z[i]).
+
+            l_max (int, optional): The maximum angular momentum to use for the expansion.
+                If no value is given, use l_max from the original computation of the expansion.
+                If l_max is given, only use contributions up to this angular momentum
+                in the evaluation.
+        """
+
+        return self._eval(xyz)
 
     def __getitem__(self, *mask):
         """
@@ -256,7 +255,7 @@ class MultipoleExpansion(object):
 
         return sum(mp_contribs)
 
-    def eval(self, xyz, l_max=None):
+    def _eval(self, xyz, l_max=None):
         """
         Evaluate multipole expansion at a point with given coordinates.
 
