@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "multipoles"
+authors = [
+    {name = "Matthias Baer"},
+]
+maintainers = [
+    {name = "Matthias Baer", email="matthias.r.baer@googlemail.com"},
+]
+description = "A Python package for multipole expansions of electrostatic or gravitational potentials"
+readme = "README.md"
+license = {text = "MIT"}
+dependencies = [
+    "numpy",
+    "scipy",
+]
+dynamic = ["version"]
+
+requires-python = ">=3.8"
+keywords=['multipole expansion',  'physics', 'scientific-computing']
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+
+
+[project.urls]
+Homepage = "https://github.com/maroba/multipoles"
+source = "https://github.com/maroba/multipoles"
+Issues = "https://github.com/maroba/multipoles/issues"
+tracker = "https://github.com/maroba/multipoles/issues"
+
+[tool.setuptools.packages.find]
+include = ["multipoles"]
+
+[tool.setuptools.dynamic]
+version = { attr = "multipoles.__version__" }
