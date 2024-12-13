@@ -1,13 +1,7 @@
-from pprint import pprint
-
+#import matplotlib.pyplot as plt
 import numpy as np
-from numpy.testing import assert_array_almost_equal
 
 from multipoles.expansion import MultipoleExpansion
-
-import matplotlib.pyplot as plt
-
-from multipoles.expansion import spherical_to_cartesian
 
 
 def calc_discrete_multipole(qs, xyzs, l_max=3):
@@ -29,7 +23,7 @@ def calc_discrete_multipole(qs, xyzs, l_max=3):
     ds = np.logspace(1, 3, 20)
     expected = np.array([phi_exact(d, d, d) for d in ds])
     actual = np.array([phi_mpe(d, d, d) for d in ds])
-    plt.title("Discrete Multipole")
+    #plt.title("Discrete Multipole")
     errors = abs((expected - actual) / expected)
     # plt.loglog(ds, errors, "o-")
     # plt.xlabel("d")
