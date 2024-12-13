@@ -274,6 +274,7 @@ class MultipoleExpansion(object):
             If l_max is given, only use contributions up to this angular momentum
             in the evaluation.
         """
+
         if l_max is None:
             l_max = self.l_max
         if l_max > self.l_max:
@@ -363,7 +364,7 @@ class MultipoleExpansion(object):
                 else:
                     q_lm += q / r ** (l + 1) * np.conj(Y_lm)
             q_lm *= prefac
-            return q_lm.real
+            return q_lm
         else:
             R, Phi, Theta = self.internal_coords_spherical
             Y_lm = sph_harm(m, l, Phi, Theta)
@@ -435,6 +436,13 @@ def cartesian_to_spherical(*coords):
 
     np.seterr(**old_settings)
     return R, Phi, Theta
+
+def spherical_to_cartesian(r, phi, theta):
+    return (
+        r * np.sin(theta) * np.cos(phi),
+        r * np.sin(theta) * np.sin(phi),
+        r * np.cos(theta)
+    )
 
 
 def _check_dict_for_keys(d, keys):
