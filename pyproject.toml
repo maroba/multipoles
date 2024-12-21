@@ -47,3 +47,6 @@ include = ["multipoles"]
 
 [tool.setuptools.dynamic]
 version = { attr = "multipoles.__version__" }
+
+[tool.ruff]
+lint.ignore = ["E741"] # suppress warning for l, m being ambiguous names, because here they are not!

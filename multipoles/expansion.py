@@ -105,7 +105,12 @@ class MultipoleExpansion(object):
         self.charge_dist = charge_dist
         if exterior is None and interior is None:
             exterior = True
-        elif interior is not None and not interior and exterior is not None and not exterior:
+        elif (
+            interior is not None
+            and not interior
+            and exterior is not None
+            and not exterior
+        ):
             raise InvalidExpansionException("Either interior or exeterior must be set.")
         else:
             exterior = bool(exterior)
@@ -113,33 +118,39 @@ class MultipoleExpansion(object):
             exterior = exterior or not interior
             interior = interior or not exterior
             if interior and exterior:
-                raise InvalidExpansionException("Interior and exeterior expansion cannot both be set.")
+                raise InvalidExpansionException(
+                    "Interior and exeterior expansion cannot both be set."
+                )
 
         self.exterior = exterior
         self.interior = interior
 
         self._assert_charge_dist()
 
-        if charge_dist['discrete']:
-            self.charges = list(charge_dist['charges'])
+        if charge_dist["discrete"]:
+            self.charges = list(charge_dist["charges"])
 
             # calculate center of internal coordinate system = center of absolute charge
             center = np.zeros(3)
             q_total = 0
             for chg in self.charges:
-                q = abs(chg['q'])
+                q = abs(chg["q"])
                 q_total += q
-                xyz = np.array(chg['xyz'])
+                xyz = np.array(chg["xyz"])
                 center += q * xyz
             center /= q_total
 
             self.center_of_charge = center
 
         else:
-            rho = charge_dist['rho']
-            X, Y, Z = charge_dist['xyz']
+            rho = charge_dist["rho"]
+            X, Y, Z = charge_dist["xyz"]
 
-            self.dxyz = (X[1, 0, 0] - X[0, 0, 0]), (Y[0, 1, 0] - Y[0, 0, 0]), (Z[0, 0, 1] - Z[0, 0, 0])
+            self.dxyz = (
+                (X[1, 0, 0] - X[0, 0, 0]),
+                (Y[0, 1, 0] - Y[0, 0, 0]),
+                (Z[0, 0, 1] - Z[0, 0, 0]),
+            )
             self.dvol = np.prod(self.dxyz)
             self.external_coords = X, Y, Z
             self.rho = rho
@@ -147,11 +158,19 @@ class MultipoleExpansion(object):
 
             # The center of charge expressed in the external coordinate system
             q_abs = np.sum(np.abs(rho)) * self.dvol
-            self.center_of_charge = np.array([np.sum(np.abs(rho) * c) for c in [X, Y, Z]]) * self.dvol / q_abs
+            self.center_of_charge = (
+                np.array([np.sum(np.abs(rho) * c) for c in [X, Y, Z]])
+                * self.dvol
+                / q_abs
+            )
 
             # The internal coordinate system is centered at the center of charge
-            self.internal_coords = tuple(c - self.center_of_charge[k] for c, k in zip([X, Y, Z], range(3)))
-            self.internal_coords_spherical = cartesian_to_spherical(*self.internal_coords)
+            self.internal_coords = tuple(
+                c - self.center_of_charge[k] for c, k in zip([X, Y, Z], range(3))
+            )
+            self.internal_coords_spherical = cartesian_to_spherical(
+                *self.internal_coords
+            )
 
         if l_max < 0 or l_max != int(l_max):
             raise ValueError("'lmax' must be integer >= 0.")
@@ -238,7 +257,7 @@ class MultipoleExpansion(object):
         mp_contribs = []
         r, phi, theta = self.internal_coords_spherical
 
-        eps = 1.E-6
+        eps = 1.0e-6
         if isinstance(r, np.ndarray):
             r[np.abs(r) < eps] = eps
         else:
@@ -250,7 +269,9 @@ class MultipoleExpansion(object):
             for m in range(-l, l + 1):
                 Y_lm = sph_harm(m, l, phi[mask], theta[mask])
                 q_lm = self.multipole_moments[(l, m)]
-                phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm / r[mask] ** (l + 1)
+                phi_l += (
+                    np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm / r[mask] ** (l + 1)
+                )
             mp_contribs.append(phi_l.real)
 
         return sum(mp_contribs)
@@ -279,40 +300,47 @@ class MultipoleExpansion(object):
             l_max = self.l_max
         if l_max > self.l_max:
             raise ValueError(
-                "Multipole expansion only contains multipoles up to l_max={}.".format(self.l_max)
+                "Multipole expansion only contains multipoles up to l_max={}.".format(
+                    self.l_max
+                )
             )
         assert isinstance(xyz, tuple) and len(xyz) == 3
-        
-        if any(hasattr(item, "__len__") for item in xyz): # some args are array-like            
+
+        if any(hasattr(item, "__len__") for item in xyz):  # some args are array-like
             # All passed arrays must have same length. Validate this and determine this
             # length.
-            len_array = None            
+            len_array = None
             for item in xyz:
                 if hasattr(item, "__len__"):
                     if len_array is None:
                         len_array = len(item)
                     else:
                         if len(item) != len_array:
-                            raise ValueError(f"All arrays must have the same length. Received: {len_array} != {len(item)}")                    
-            
+                            raise ValueError(
+                                f"All arrays must have the same length. Received: {len_array} != {len(item)}"
+                            )
+
             # If numbers are passed along with arrays, expand the numbers to constant
             # arrays of the right size.
             xyz = list(xyz)
-            for i in range(3):                
+            for i in range(3):
                 if isinstance(xyz[i], numbers.Number):
                     xyz[i] = np.ones(len_array) * xyz[i]
             xyz = tuple(xyz)
-            
+
             # Now do the evaluation
             return np.array(
-                [sum(self._multipole_contribs((x, y, z))[:l_max + 1]) for x, y, z in zip(*xyz)]
+                [
+                    sum(self._multipole_contribs((x, y, z))[: l_max + 1])
+                    for x, y, z in zip(*xyz)
+                ]
             )
         elif all(isinstance(item, numbers.Number) for item in xyz):
-            # only numbers were passed; evaluate at single point      
-            return sum(self._multipole_contribs(xyz)[:l_max + 1])        
-        else:            
+            # only numbers were passed; evaluate at single point
+            return sum(self._multipole_contribs(xyz)[: l_max + 1])
+        else:
             raise ValueError("Only triple of floats or tripe of arrays allowed.")
-        
+
     def _multipole_contribs(self, xyz):
         if not isinstance(xyz, np.ndarray):
             xyz = np.array(xyz)
@@ -320,7 +348,7 @@ class MultipoleExpansion(object):
         xyz_internal = xyz - self.center_of_charge
         r, phi, theta = cartesian_to_spherical(*xyz_internal)
 
-        eps = 1.E-6
+        eps = 1.0e-6
         if isinstance(r, np.ndarray):
             r[np.abs(r) < eps] = eps
         else:
@@ -335,9 +363,11 @@ class MultipoleExpansion(object):
                 Y_lm = sph_harm(m, l, phi, theta)
                 q_lm = self.multipole_moments[(l, m)]
                 if self.exterior:
-                    phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm / r ** (l + 1)
+                    phi_l += (
+                        np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm / r ** (l + 1)
+                    )
                 else:
-                    phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm * r ** l
+                    phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm * r**l
             mp_contribs.append(phi_l.real)
         return mp_contribs
 
@@ -348,19 +378,19 @@ class MultipoleExpansion(object):
                 moments[(l, m)] = self._calc_multipole_coef(l, m)
         return moments
 
-    def _calc_multipole_coef(self, l, m):
+    def _calc_multipole_coef(self, l, m):  # npqa: E741
 
         prefac = np.sqrt(4 * np.pi / (2 * l + 1))
 
-        if self.charge_dist['discrete']:
+        if self.charge_dist["discrete"]:
             q_lm = 0
             for chg in self.charges:
-                xyz = chg['xyz'] - self.center_of_charge
-                q = chg['q']
+                xyz = chg["xyz"] - self.center_of_charge
+                q = chg["q"]
                 r, phi, theta = cartesian_to_spherical(*xyz)
                 Y_lm = sph_harm(m, l, phi, theta)
                 if self.exterior:
-                    q_lm += q * r ** l * np.conj(Y_lm)
+                    q_lm += q * r**l * np.conj(Y_lm)
                 else:
                     q_lm += q / r ** (l + 1) * np.conj(Y_lm)
             q_lm *= prefac
@@ -369,7 +399,7 @@ class MultipoleExpansion(object):
             R, Phi, Theta = self.internal_coords_spherical
             Y_lm = sph_harm(m, l, Phi, Theta)
             if self.exterior:
-                integrand = R ** l * self.rho * np.conj(Y_lm)
+                integrand = R**l * self.rho * np.conj(Y_lm)
             else:
                 integrand = 1 / R ** (l + 1) * self.rho * np.conj(Y_lm)
             return self._integrate(integrand) * prefac
@@ -377,27 +407,30 @@ class MultipoleExpansion(object):
     def _integrate(self, integrand):
         return simpson(
             simpson(
-                simpson(integrand,
-                        dx=self.dxyz[2], axis=-1),
-                dx=self.dxyz[1], axis=-1
-            ), dx=self.dxyz[0], axis=-1)
+                simpson(integrand, dx=self.dxyz[2], axis=-1), dx=self.dxyz[1], axis=-1
+            ),
+            dx=self.dxyz[0],
+            axis=-1,
+        )
 
     def _assert_charge_dist(self):
 
-        if 'discrete' not in self.charge_dist:
+        if "discrete" not in self.charge_dist:
             raise InvalidChargeDistributionException("Parameter 'discrete' missing.")
 
-        if self.charge_dist['discrete']:
-            _check_dict_for_keys(self.charge_dist, ['discrete', 'charges'])
+        if self.charge_dist["discrete"]:
+            _check_dict_for_keys(self.charge_dist, ["discrete", "charges"])
 
-            if not hasattr(self.charge_dist['charges'], '__len__'):
-                raise InvalidChargeDistributionException("Parameter 'charges' must be an array-like of dicts.")
+            if not hasattr(self.charge_dist["charges"], "__len__"):
+                raise InvalidChargeDistributionException(
+                    "Parameter 'charges' must be an array-like of dicts."
+                )
 
-            for charge in self.charge_dist['charges']:
-                _check_dict_for_keys(charge, ['q', 'xyz'])
+            for charge in self.charge_dist["charges"]:
+                _check_dict_for_keys(charge, ["q", "xyz"])
 
         else:
-            _check_dict_for_keys(self.charge_dist, ['discrete', 'rho', 'xyz'])
+            _check_dict_for_keys(self.charge_dist, ["discrete", "rho", "xyz"])
 
 
 class InvalidChargeDistributionException(Exception):
@@ -410,16 +443,16 @@ class InvalidExpansionException(Exception):
 
 def cartesian_to_spherical(*coords):
     X, Y, Z = coords
-    R = np.sqrt(X ** 2 + Y ** 2 + Z ** 2)
-    R_xy = np.sqrt(X ** 2 + Y ** 2)
+    R = np.sqrt(X**2 + Y**2 + Z**2)
+    R_xy = np.sqrt(X**2 + Y**2)
 
     # the 'where' argument in np.arccos is not working as expected,
     # so handle invalid points manually and turn off floating point
     # errors temporarily
     old_settings = np.geterr()
-    np.seterr(all='ignore')
+    np.seterr(all="ignore")
 
-    if hasattr(R_xy, '__len__'):
+    if hasattr(R_xy, "__len__"):
         Phi = np.arctan2(Y, X)
         Phi[R_xy == 0] = 0
         Theta = np.arccos(Z / R)
@@ -437,11 +470,12 @@ def cartesian_to_spherical(*coords):
     np.seterr(**old_settings)
     return R, Phi, Theta
 
+
 def spherical_to_cartesian(r, phi, theta):
     return (
         r * np.sin(theta) * np.cos(phi),
         r * np.sin(theta) * np.sin(phi),
-        r * np.cos(theta)
+        r * np.cos(theta),
     )
 
 
