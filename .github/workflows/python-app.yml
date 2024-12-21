@@ -30,7 +30,8 @@ jobs:
           pip freeze
       - name: Test with pytest
         run: |
-          pytest --cov --cov-report=html multipoles
+          pytest
       - name: Submit code coverage
-        run: |          
+        run: |
+          pytest --cov --cov-report=html multipoles
           codecov -t ${{ secrets.CODECOV_TOKEN }}
