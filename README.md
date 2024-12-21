@@ -3,9 +3,6 @@
 <p><a href="https://badge.fury.io/py/multipoles"> <img src="https://badge.fury.io/py/multipoles.svg?branch=kill_cache=1" alt="PyPI version"></a> 
 <a href=""> <img src="https://github.com/maroba/multipoles/actions/workflows/python-app.yml/badge.svg" alt="build"></a>
 <a href="https://codecov.io/gh/maroba/multipoles"> <img src="https://codecov.io/gh/maroba/multipoles/branch/master/graph/badge.svg?token=JNH9SP7BRG" alt=""></a>
-<a href="https://codecov.io/github/maroba/multipoles" > 
- <img src="https://codecov.io/github/maroba/multipoles/graph/badge.svg?token=DOWV0LL35A"/> 
- </a>
 </p>
 
 *multipoles* is a Python package for multipole expansions of the solutions of the Poisson equation (e.g. electrostatic
