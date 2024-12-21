@@ -33,5 +33,5 @@ jobs:
           pytest
       - name: Submit code coverage
         run: |
-          pytest --cov --cov-report=html multipoles
+          pytest --cov --cov-report=html
           codecov -t ${{ secrets.CODECOV_TOKEN }}
