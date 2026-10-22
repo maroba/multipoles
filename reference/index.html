@@ -49,17 +49,15 @@
                 </li>
               </ul>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="./">API Reference</a>
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">API Reference</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#multipoles.MultipoleExpansion">MultipoleExpansion</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#multipoles.MultipoleExpansion.__init__">__init__()</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#multipoles.MultipoleExpansion.__init__--examples">Examples</a>
+    <li class="toctree-l3"><a class="reference internal" href="#multipoles.MultipoleExpansion.__init__">__init__</a>
     </li>
-        </ul>
+    <li class="toctree-l3"><a class="reference internal" href="#multipoles.MultipoleExpansion.__call__">__call__</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#multipoles.MultipoleExpansion.__call__">__call__()</a>
+    <li class="toctree-l3"><a class="reference internal" href="#multipoles.MultipoleExpansion.__getitem__">__getitem__</a>
     </li>
         </ul>
     </li>
@@ -96,28 +94,34 @@
 
 
 
-
 <h2 id="multipoles.MultipoleExpansion" class="doc doc-heading">
-          <code>multipoles.MultipoleExpansion</code>
+            <code>multipoles.MultipoleExpansion</code>
 
 
 </h2>
 
 
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code>object</code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="object">object</span></code></p>
 
-  
-      <p>Perform a multipole expansion for a given charge or mass distribution.</p>
+
+
+        <p>Perform a multipole expansion for a given charge or mass distribution.</p>
 <p>Determines the spherical multipole moments of the given distribution and
 can calculate the solution of the electrostatic or gravitational potential
 based on the multipole expansion.</p>
 
 
-  
 
-  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -131,18 +135,15 @@ based on the multipole expansion.</p>
 <div class="doc doc-object doc-function">
 
 
-
-
 <h3 id="multipoles.MultipoleExpansion.__init__" class="doc doc-heading">
-          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">charge_dist</span><span class="p">,</span> <span class="n">l_max</span><span class="p">,</span> <span class="n">exterior</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interior</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">charge_dist</span><span class="p">,</span> <span class="n">l_max</span><span class="p">,</span> <span class="n">exterior</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interior</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h3>
 
 
-  <div class="doc doc-contents ">
-  
-      <p>Create a MultipoleExpansion object for a given charge or mass distribution.</p>
+    <div class="doc doc-contents ">
 
+        <p>Create a MultipoleExpansion object for a given charge or mass distribution.</p>
 
 
 <table class="field-list">
@@ -157,123 +158,148 @@ based on the multipole expansion.</p>
         <ul class="first simple">
             <li>
               <b><code>charge_dist</code></b>
-                  (<code>dict</code>)
+                  (<code><span title="dict">dict</span></code>)
               –
               <div class="doc-md-description">
-                <p>description of the charge distribution</p>
-<p>For discrete charge distributions (point charges) the dict MUST contain the
-following (key:value)-pairs:</p>
-<p><code>'discrete'</code>:    True</p>
-<p><code>'q'</code>:           the charge (positive or negative floating point number)</p>
-<p><code>'xyz'</code>:         the location of the charge in cartesian coordinates
-                    (a tuple, list or array of length 3)</p>
-<p>For continuous charge distributions (charge density) the dict MUST contain the
-following items:</p>
-<p>'discrete':    False
-   'rho':         the 3D charge distribution (3D numpy array)
-   'xyz':         the domain of the charge distribution
-                  (3-tuple of 3D coordinate arrays, see example below)</p>
+                <p>Description of the charge distribution.</p>
+<p>For discrete charge distributions (point charges) the dict must contain
+exactly the following items:</p>
+<ul>
+<li><code>'discrete'</code>: <code>True</code></li>
+<li><code>'charges'</code>: a list of dicts, one for each point charge, with the items<ul>
+<li><code>'q'</code>: the charge (positive or negative number)</li>
+<li><code>'xyz'</code>: the location of the charge in cartesian coordinates
+  (tuple, list or array of length 3)</li>
+</ul>
+</li>
+</ul>
+<p>For continuous charge distributions (charge density) the dict must contain
+exactly the following items:</p>
+<ul>
+<li><code>'discrete'</code>: <code>False</code></li>
+<li><code>'rho'</code>: the charge density on a grid (3D numpy array)</li>
+<li><code>'xyz'</code>: the grid, a 3-tuple of 3D coordinate arrays as returned by
+  <code>np.meshgrid(x, y, z, indexing='ij')</code></li>
+</ul>
               </div>
             </li>
             <li>
               <b><code>l_max</code></b>
-                  (<code>int</code>)
+                  (<code><span title="int">int</span></code>)
               –
               <div class="doc-md-description">
-                <p>the maximum multipole moment to consider (0=monopole, 1=dipole, etc.)</p>
+                <p>The maximum multipole moment to consider
+(0 = monopole, 1 = dipole, etc.).</p>
               </div>
             </li>
             <li>
               <b><code>exterior</code></b>
-                  (<code>bool</code>, default:
+                  (<code><span title="bool">bool</span></code>, default:
                       <code>None</code>
 )
               –
               <div class="doc-md-description">
-                <p>whether to perform an exterior expansion (default).
-    If false, interior expansion will be used.</p>
+                <p>Whether to perform an exterior expansion (default).
+If <code>False</code>, the interior expansion is used.</p>
               </div>
             </li>
             <li>
               <b><code>interior</code></b>
-                  (<code>bool</code>, default:
+                  (<code><span title="bool">bool</span></code>, default:
                       <code>None</code>
 )
               –
               <div class="doc-md-description">
-                <p>syntactic override for exterior expansion parameter</p>
+                <p>Whether to perform an interior expansion. Alternative to
+<code>exterior</code>; only one of both needs to be given.</p>
               </div>
             </li>
         </ul>
       </td>
     </tr>
   </tbody>
-</table>      <h5 id="multipoles.MultipoleExpansion.__init__--examples">Examples</h5>
-<p>As example for a discrete charge distribution we model two point charges with
-positive and negative unit charge located on the z-axis:</p>
-<pre><code>&gt;&gt;&gt; from multipoles import MultipoleExpansion
-</code></pre>
-<p>Prepare the charge distribution dict for the MultipoleExpansion object:</p>
-<pre><code>&gt;&gt;&gt; charge_dist = {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 1)}, {'q': -1, 'xyz': (0, 0, -1)}]}
-&gt;&gt;&gt; l_max = 2
-&gt;&gt;&gt; Phi = MultipoleExpansion(charge_dist, l_max)
-</code></pre>
-<p>Then evaluate on any point desired using Phi(...) or Phi[]. See
-the docstrings of <strong>call</strong> and <strong>getitem</strong>, respectively.</p>
-<p>As an example for a continuous charge distribution, we smear out the point charges from the previous example:</p>
-<pre><code>&gt;&gt;&gt; from multipoles import MultipoleExpansion
-&gt;&gt;&gt; import numpy as np
-</code></pre>
-<p>First we set up our grid, a cube of length 10 centered at the origin:</p>
-<pre><code>&gt;&gt;&gt; npoints = 101
-&gt;&gt;&gt; edge = 10
-&gt;&gt;&gt; x, y, z = [np.linspace(-edge/2., edge/2., npoints)]*3
-&gt;&gt;&gt; XYZ = np.meshgrid(x, y, z, indexing='ij')
-</code></pre>
-<p>We model our smeared out charges as gaussian functions:</p>
-<pre><code>&gt;&gt;&gt; def gaussian(XYZ, xyz0, sigma):
-&gt;&gt;&gt;    g = np.ones_like(XYZ[0])
-&gt;&gt;&gt;    for k in range(3):
-&gt;&gt;&gt;        g *= np.exp(-(XYZ[k] - xyz0[k])**2 / sigma**2)
-&gt;&gt;&gt;    g *= (sigma**2*np.pi)**-1.5
-&gt;&gt;&gt;    return g
-</code></pre>
-<p>The width of our gaussians:</p>
-<pre><code>&gt;&gt;&gt; sigma = 1.5
-</code></pre>
-<p>Initialize the charge density rho, which is a 3D numpy array:</p>
-<pre><code>&gt;&gt;&gt; rho = gaussian(XYZ, (0, 0, 1), sigma) - gaussian(XYZ, (0, 0, -1), sigma)
-</code></pre>
-<p>Prepare the charge distribution dict for the MultipoleExpansion object:</p>
-<pre><code>&gt;&gt;&gt; charge_dist = {'discrete': False, 'rho': rho, 'xyz': XYZ}
-</code></pre>
-<p>The rest is the same as for the discrete case:</p>
-<pre><code>&gt;&gt;&gt; l_max = 2
-&gt;&gt;&gt; Phi = MultipoleExpansion(charge_dist, l_max)
-</code></pre>
-<p>Then evaluate on any point desired using Phi(...) or Phi[]. See
-the docstrings of <strong>call</strong> and <strong>getitem</strong>, respectively.</p>
+</table>        <p>The expansion is done about the center of charge, which is weighted by the
+absolute value of the charges.</p>
 
-  </div>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="multipoles.expansion.InvalidChargeDistributionException">InvalidChargeDistributionException</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If <code>charge_dist</code> is malformed, the total
+absolute charge is zero, or the grid is invalid.</p>
+              </div>
+            </li>
+            <li>
+                  <code><span title="multipoles.expansion.InvalidExpansionException">InvalidExpansionException</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If <code>interior</code> and <code>exterior</code> contradict each other,
+or an interior expansion is requested with charge at the expansion center.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <p>A discrete charge distribution: two point charges with positive and negative
+unit charge located on the z-axis:</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">multipoles</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultipoleExpansion</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">charge_dist</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s1">&#39;discrete&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;charges&#39;</span><span class="p">:</span> <span class="p">[</span>
+<span class="gp">... </span>        <span class="p">{</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;xyz&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)},</span>
+<span class="gp">... </span>        <span class="p">{</span><span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;xyz&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)},</span>
+<span class="gp">... </span>    <span class="p">],</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="p">(</span><span class="n">charge_dist</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+    <p>A continuous charge distribution: the same charges, smeared out as gaussians
+on a cubic grid of edge length 10 centered at the origin:</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">101</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">XYZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">gaussian</span><span class="p">(</span><span class="n">XYZ</span><span class="p">,</span> <span class="n">xyz0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">XYZ</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">g</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">XYZ</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">xyz0</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">g</span> <span class="o">*</span> <span class="p">(</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">**-</span><span class="mf">1.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rho</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">XYZ</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">-</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">XYZ</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mf">1.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="p">({</span><span class="s1">&#39;discrete&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="n">rho</span><span class="p">,</span> <span class="s1">&#39;xyz&#39;</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">},</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+    <p>Evaluate the expansion at arbitrary points with <code>Phi(x, y, z)</code>, or on the
+grid points of a continuous distribution with <code>Phi[...]</code>.</p>
+
+
+    </div>
 
 </div>
-
 
 <div class="doc doc-object doc-function">
 
 
-
-
 <h3 id="multipoles.MultipoleExpansion.__call__" class="doc doc-heading">
-          <code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">xyz</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">xyz</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h3>
 
 
-  <div class="doc doc-contents ">
-  
-      <p>Evaluate multipole expansion at a point with given coordinates.</p>
+    <div class="doc doc-contents ">
 
+        <p>Evaluate the multipole expansion at points with given coordinates.</p>
 
 
 <table class="field-list">
@@ -287,29 +313,29 @@ the docstrings of <strong>call</strong> and <strong>getitem</strong>, respective
       <td class="field-body">
         <ul class="first simple">
             <li>
-              <b><code>xyz</code></b>
-                  (<code>3-tuple of floats|array</code>, default:
+              <b><code>*xyz</code></b>
+                  (<code><span title="float">float</span> | <span title="array_like">array_like</span></code>, default:
                       <code>()</code>
 )
               –
               <div class="doc-md-description">
-                <p>The x,y,z coordinates of the points where to evaluate the expansion.
-If three floats are given, then only one point with coordinates (x, y, z)
-is evaluated. If three arrays xyz=(x, y, z) are given, the evaluation is done at each
-point (x[i], y[i], z[i]).</p>
+                <p>The x, y, z coordinates of the points where to
+evaluate the expansion. If three numbers are given, the expansion is
+evaluated at the single point (x, y, z). If arrays are given, it is
+evaluated at each point (x[i], y[i], z[i]). Arrays may have any shape;
+numbers and arrays are broadcast against each other.</p>
               </div>
             </li>
             <li>
               <b><code>l_max</code></b>
-                  (<code>int</code>, default:
+                  (<code><span title="int">int</span></code>, default:
                       <code>None</code>
 )
               –
               <div class="doc-md-description">
-                <p>The maximum angular momentum to use for the expansion.
-If no value is given, use l_max from the original computation of the expansion.
-If l_max is given, only use contributions up to this angular momentum
-in the evaluation.</p>
+                <p>Only use contributions up to this angular momentum.
+Defaults to the <code>l_max</code> the expansion was created with, and must not
+exceed it.</p>
               </div>
             </li>
         </ul>
@@ -317,7 +343,150 @@ in the evaluation.</p>
     </tr>
   </tbody>
 </table>
-  </div>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="float">float</span> | <span title="numpy.ndarray">ndarray</span></code>
+              –
+              <div class="doc-md-description">
+                <p>The value of the potential: a float for a single point,
+otherwise an array of the broadcast shape of the coordinates.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">Phi</span><span class="p">(</span><span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Phi</span><span class="p">(</span><span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># monopole and dipole only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Phi</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># 5 points on the x-axis</span>
+</code></pre></div>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="multipoles.MultipoleExpansion.__getitem__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Evaluate the multipole expansion on grid points of the charge distribution.</p>
+<p>Only available for continuous charge distributions.</p>
+
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Parameters:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+              <b><code>key</code></b>
+                  (<code>index expression | array_like</code>)
+              –
+              <div class="doc-md-description">
+                <p>Slices, indices or a boolean mask
+selecting the points of the grid <code>charge_dist['xyz']</code> at which to
+evaluate the expansion.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Returns:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+              –
+              <div class="doc-md-description">
+                <p>The values of the multipole expansion, in the shape defined
+by <code>key</code>.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="field-list">
+  <colgroup>
+    <col class="field-name" />
+    <col class="field-body" />
+  </colgroup>
+  <tbody valign="top">
+    <tr class="field">
+      <th class="field-name">Raises:</th>
+      <td class="field-body">
+        <ul class="first simple">
+            <li>
+                  <code><span title="TypeError">TypeError</span></code>
+              –
+              <div class="doc-md-description">
+                <p>If the charge distribution is discrete.</p>
+              </div>
+            </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">51</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rho</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">((</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mf">1.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mpe</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="p">({</span><span class="s1">&#39;discrete&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="n">rho</span><span class="p">,</span> <span class="s1">&#39;xyz&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">)},</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div>
+    <p>Evaluate on the whole grid (a 51x51x51 array) or on the plane <code>z = -5</code>
+(a 51x51 array):</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">mpe</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mpe</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+</code></pre></div>
+    <p>Evaluate only on the boundary of the grid, using a boolean mask:</p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">boundary_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">boundary_values</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">mpe</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+</code></pre></div>
+
+
+    </div>
 
 </div>
 
@@ -325,7 +494,8 @@ in the evaluation.</p>
 
   </div>
 
-  </div>
+    </div>
+
 
 </div>
               
@@ -365,8 +535,7 @@ in the evaluation.</p>
     <script src="../js/theme_extra.js"></script>
     <script src="../js/theme.js"></script>
       <script src="../javascripts/mathjax.js"></script>
-      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
     <script>
         jQuery(function () {
             SphinxRtdTheme.Navigation.enable(true);

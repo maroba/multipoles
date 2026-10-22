@@ -41,13 +41,17 @@
                 </li>
               </ul>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="./">Usage</a>
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Usage</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#discrete-charge-distribution">Discrete Charge Distribution</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#continuous-charge-distribution">Continuous Charge Distribution</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#evaluating-the-expansion">Evaluating the Expansion</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#interior-expansion">Interior Expansion</a>
     </li>
     </ul>
                 </li>
@@ -160,6 +164,53 @@ Phi = MultipoleExpansion(charge_dist, l_max)
 x, y, z = 30.5, 30.6, 30.7
 value = Phi(x, y, z)
 </code></pre>
+<h2 id="evaluating-the-expansion">Evaluating the Expansion</h2>
+<p><code>Phi(x, y, z)</code> accepts numbers as well as arrays of any shape. Numbers and arrays are broadcast
+against each other, and the result has the broadcast shape:</p>
+<pre><code class="language-python">import numpy as np
+
+Phi(30.5, 30.6, 30.7)                  # a single point
+
+x = np.linspace(10, 20, 5)
+Phi(x, 0, 0)                           # 5 points on the x-axis
+
+X, Y = np.meshgrid(x, x, indexing='ij')
+Phi(X, Y, 30)                          # a 5x5 array on the plane z=30
+</code></pre>
+<p>With <code>l_max</code> you can restrict the evaluation to the lower multipoles, e.g. to see how much each
+order contributes. It must not exceed the <code>l_max</code> the expansion was created with:</p>
+<pre><code class="language-python">Phi(30.5, 30.6, 30.7, l_max=0)         # monopole only
+Phi(30.5, 30.6, 30.7, l_max=1)         # monopole + dipole
+</code></pre>
+<p>For continuous charge distributions you can also evaluate directly on the grid of the charge
+density, using slices, indices or boolean masks:</p>
+<pre><code class="language-python">Phi[:, :, :]                           # the whole grid, same shape as rho
+Phi[:, :, 0]                           # the plane z = -5
+
+mask = np.ones_like(rho, dtype=bool)   # only the boundary of the grid,
+mask[1:-1, 1:-1, 1:-1] = False         # e.g. as boundary condition for
+boundary = np.zeros_like(rho)          # a Poisson solver
+boundary[mask] = Phi[mask]
+</code></pre>
+<h2 id="interior-expansion">Interior Expansion</h2>
+<p>By default, <em>multipoles</em> computes the exterior expansion, which is valid <em>outside</em> of the charge
+distribution. For the potential <em>inside</em> a region free of charge, surrounded by the charges, use
+the interior expansion:</p>
+<pre><code class="language-python">charge_dist = {
+    'discrete': True,
+    'charges': [
+        {'q': 1, 'xyz': (4, 0, 0)},
+        {'q': 1, 'xyz': (-4, 0, 0)},
+        {'q': 1, 'xyz': (0, 4, 0)},
+        {'q': 1, 'xyz': (0, -4, 0)},
+    ]
+}
+
+Phi = MultipoleExpansion(charge_dist, l_max=3, interior=True)   # or exterior=False
+Phi(0, 0, 0)   # = 4 * 1/4 = 1
+</code></pre>
+<p>Both expansions are done about the center of charge (weighted by the absolute values of the
+charges). For the interior expansion, there must be no charge at this center.</p>
               
             </div>
           </div><footer>
@@ -200,8 +251,7 @@ value = Phi(x, y, z)
     <script src="../js/theme_extra.js"></script>
     <script src="../js/theme.js"></script>
       <script src="../javascripts/mathjax.js"></script>
-      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
     <script>
         jQuery(function () {
             SphinxRtdTheme.Navigation.enable(true);
