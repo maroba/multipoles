@@ -1,6 +1,27 @@
-# Welcome to the multipoles docs
+# multipoles
 
-<p><a href="https://badge.fury.io/py/multipoles"> <img src="https://badge.fury.io/py/multipoles.svg?branch=kill_cache=1" alt="PyPI version"></a> <a href="https://github.com/maroba/multipoles/actions/workflows/python-app.yml"> <img src="https://github.com/maroba/multipoles/actions/workflows/python-app.yml/badge.svg" alt="build"></a><a href="https://codecov.io/gh/maroba/multipoles"> <img src="https://codecov.io/gh/maroba/multipoles/branch/master/graph/badge.svg?token=JNH9SP7BRG" alt=""></a></p>
+*multipoles* computes multipole expansions of the solutions of the Poisson equation, such as electrostatic
+or gravitational potentials. Instead of integrating over the whole charge or mass distribution for every point
+where you need the potential, you compute a few multipole moments once and evaluate the expansion cheaply
+anywhere outside (or, for the interior expansion, inside) the distribution.
 
-*multipoles* is a Python package for multipole expansions of the solutions of the Poisson equation (e.g. electrostatic
-or gravitational potentials). It can handle discrete and continuous charge or mass distributions.
+--8<-- "README.md:features"
+
+## Installation
+
+```
+pip install --upgrade multipoles
+```
+
+--8<-- "README.md:quickstart"
+
+--8<-- "README.md:units"
+
+## Where to go next
+
+- [Usage](usage.md): continuous charge distributions, evaluation on grids, the field, the multipole
+  moments, the interior expansion, gravity
+- [Theory](theory.md): the formulas behind the expansion, where it converges and how accurate it is
+- [Accuracy](accuracy.ipynb): a worked comparison with exact solutions
+- [API Reference](reference.md)
+- [Changelog](changelog.md)

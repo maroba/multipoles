@@ -38,6 +38,8 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/maroba/multipoles"
+Documentation = "https://maroba.github.io/multipoles/"
+Changelog = "https://github.com/maroba/multipoles/blob/master/CHANGELOG.md"
 source = "https://github.com/maroba/multipoles"
 Issues = "https://github.com/maroba/multipoles/issues"
 tracker = "https://github.com/maroba/multipoles/issues"

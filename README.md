@@ -1,138 +1,76 @@
 # multipoles
 
-<p><a href="https://badge.fury.io/py/multipoles"> <img src="https://badge.fury.io/py/multipoles.svg?branch=kill_cache=1" alt="PyPI version"></a> 
-<a href="https://github.com/maroba/multipoles/actions/workflows/python-app.yml"> <img src="https://github.com/maroba/multipoles/actions/workflows/python-app.yml/badge.svg" alt="build"></a>
-<a href="https://codecov.io/gh/maroba/multipoles"> <img src="https://codecov.io/gh/maroba/multipoles/branch/master/graph/badge.svg?token=JNH9SP7BRG" alt=""></a>
+<p>
+<a href="https://pypi.org/project/multipoles/"><img src="https://badge.fury.io/py/multipoles.svg" alt="PyPI version"></a>
+<a href="https://pypi.org/project/multipoles/"><img src="https://img.shields.io/pypi/pyversions/multipoles.svg" alt="Python versions"></a>
+<a href="https://github.com/maroba/multipoles/actions/workflows/python-app.yml"><img src="https://github.com/maroba/multipoles/actions/workflows/python-app.yml/badge.svg" alt="Build status"></a>
+<a href="https://codecov.io/gh/maroba/multipoles"><img src="https://codecov.io/gh/maroba/multipoles/branch/master/graph/badge.svg?token=JNH9SP7BRG" alt="Code coverage"></a>
+<a href="https://github.com/maroba/multipoles/blob/master/LICENSE"><img src="https://img.shields.io/pypi/l/multipoles.svg" alt="License"></a>
 </p>
 
-*multipoles* is a Python package for multipole expansions of the solutions of the Poisson equation (e.g. electrostatic
-or gravitational potentials). It can handle discrete and continuous charge or mass distributions.
+*multipoles* computes multipole expansions of the solutions of the Poisson equation, such as electrostatic
+or gravitational potentials. Instead of integrating over the whole charge or mass distribution for every point
+where you need the potential, you compute a few multipole moments once and evaluate the expansion cheaply
+anywhere outside (or, for the interior expansion, inside) the distribution.
+
+**[Documentation](https://maroba.github.io/multipoles/)** ·
+**[Changelog](https://github.com/maroba/multipoles/blob/master/CHANGELOG.md)**
+
+<!-- --8<-- [start:features] -->
+## Features
+
+- Discrete (point charges) and continuous (charge density on a grid) distributions
+- Exterior and interior expansions, about the center of charge or any point you choose
+- The potential and its field E = -∇Φ, computed analytically, at single points or for whole arrays
+- Spherical multipole moments, plus total charge, dipole vector and quadrupole tensor
+- Warnings when you evaluate the expansion where it does not converge
+
+<!-- --8<-- [end:features] -->
 
 ## Installation
-
-Simply use `pip`:
 
 ```
 pip install --upgrade multipoles
 ```
 
-## Documentation
+<!-- --8<-- [start:quickstart] -->
+## Quickstart
 
-The documentation is available [here](https://maroba.github.io/multipoles/).
-
-## Theory
-
-For a given function $\rho(x,y,z)$, the solution $\Phi(x,y,z)$ of the Poisson equation $\nabla^2\Phi=-4\pi \rho$ with
-vanishing Dirichlet boundary conditions at infinity is
-
-$$\Phi(x,y,z)=\int d^3r'\frac{\rho(r')}{|r-r'|}$$
-
-Examples of this are the electrostatic and Newtonian gravitational potential.
-If you need to evaluate $\Phi(x,y,z)$ at many points, calculating the integral for each point is computationally
-expensive. As a faster alternative, we can express $\Phi(x,y,z)$ in terms of the multipole moments $q_{lm}$ or
-$I_{lm}$ (note some literature uses the subscripts $(\cdot)_{nm}$):
-
-$$\Phi(x,y,z)=\sum_{l=0}^\infty\underbrace{\sqrt{\frac{4\pi}{2l+1}}\sum_{m=-l}^lY_{lm}(\theta, \varphi)\frac{q_{lm}}{r^{l+1}}}_{\Phi^{(l)}}$$
-
-for an exterior expansion, or
-
-$$\Phi(x,y,z)=\sum_{l=0}^\infty\underbrace{\sqrt{\frac{4\pi}{2l+1}}\sum_{m=-l}^lY_{lm}(\theta, \varphi)I_{lm}r^{l}}_{\Phi^{(l)}}$$
-
-for an interior expansion; where $r, \theta, \varphi$ are the usual spherical coordinates corresponding to the cartesian
-coordinates $x, y, z$ and $Y_{lm}(\theta, \varphi)$ are the spherical harmonics.
-
-The multipole moments for the exterior expansion are:
-
-$$q_{lm} = \sqrt{\frac{4\pi}{2l+1}}\int d^3 r' \rho(r')r'^l Y^*_{lm}(\theta', \varphi')$$
-
-and the multipole moments for the interior expansion are:
-
-$$I_{lm} = \sqrt{\frac{4\pi}{2l+1}}\int d^3 r' \frac{\rho(r')}{r'^{l+1}} Y^*_{lm}(\theta', \varphi')$$
-
-This approach is usually much faster because the contributions $\Phi^{(l)}$ are getting smaller with increasing
-$l$. So we just have to calculate a few integrals for obtaining some $q_{lm}$ or $I_{lm}$.
-
-Some literature considers the $\sqrt{\frac{4\pi}{2l+1}}$ as part of the definition of $Y_{lm}(\theta, \varphi)$.
-
-## Examples
-
-### Discrete Charge Distribution
-
-As example for a discrete charge distribution we model two point charges with positive and negative unit charge located
-on the z-axis:
+Two point charges +1 and -1 on the z-axis:
 
 ```python
 from multipoles import MultipoleExpansion
 
-# Prepare the charge distribution dict for the MultipoleExpansion object:
-
 charge_dist = {
-    'discrete': True,  # point charges are discrete charge distributions
+    'discrete': True,
     'charges': [
         {'q': 1, 'xyz': (0, 0, 1)},
         {'q': -1, 'xyz': (0, 0, -1)},
-    ]
+    ],
 }
 
-l_max = 2  # where to stop the infinite multipole sum; here we expand up to the quadrupole (l=2)
+Phi = MultipoleExpansion(charge_dist, l_max=8)
 
-Phi = MultipoleExpansion(charge_dist, l_max)
-
-# We can evaluate the multipole expanded potential at a given point like this:
-
-x, y, z = 30.5, 30.6, 30.7
-value = Phi(x, y, z)
-
-# The multipole moments are stored in a dict, where the keys are (l, m) and the values q_lm:
-Phi.multipole_moments
+Phi(0, 0, 10)            # 0.0202020199..., exact: 1/9 - 1/11 = 0.0202020202...
+Phi(0, 0, 10, l_max=1)   # 0.02, only monopole and dipole
+Phi.field(0, 0, 10)      # [0, 0, 0.004081], the field E = -∇Φ
+Phi.dipole_moment        # [0, 0, 2]
 ```
 
-### Continuous Charge Distribution
+For charge densities on a grid, gravity, the interior expansion and more, see the
+[usage guide](https://maroba.github.io/multipoles/usage/).
 
-As an example for a continuous charge distribution, we smear out the point charges from the previous
-example:
+<!-- --8<-- [end:quickstart] -->
 
-```python
-from multipoles import MultipoleExpansion
-import numpy as np
+<!-- --8<-- [start:units] -->
+## Units
 
-# First we set up our grid, a cube of length 10 centered at the origin:
+*multipoles* computes Φ = Σ q / r, i.e. the potential in Gaussian units. Multiply by 1 / (4πε₀) for the
+electrostatic potential in SI units. For the gravitational potential, pass the masses as charges and multiply
+by -G.
 
-npoints = 101
-edge = 10
-x, y, z = [np.linspace(-edge / 2., edge / 2., npoints)] * 3
-XYZ = np.meshgrid(x, y, z, indexing='ij')
+<!-- --8<-- [end:units] -->
 
+## Contributing
 
-# We model our smeared out charges as gaussian functions:
-
-def gaussian(XYZ, xyz0, sigma):
-    g = np.ones_like(XYZ[0])
-    for k in range(3):
-        g *= np.exp(-(XYZ[k] - xyz0[k]) ** 2 / sigma ** 2)
-    g *= (sigma ** 2 * np.pi) ** -1.5
-    return g
-
-
-sigma = 1.5  # the width of our gaussians
-
-# Initialize the charge density rho, which is a 3D numpy array:
-rho = gaussian(XYZ, (0, 0, 1), sigma) - gaussian(XYZ, (0, 0, -1), sigma)
-
-# Prepare the charge distribution dict for the MultipoleExpansion object:
-
-charge_dist = {
-    'discrete': False,  # we have a continuous charge distribution here
-    'rho': rho,
-    'xyz': XYZ
-}
-
-# The rest is the same as for the discrete case:
-
-l_max = 2  # where to stop the infinite multipole sum; here we expand up to the quadrupole (l=2)
-
-Phi = MultipoleExpansion(charge_dist, l_max)
-
-x, y, z = 30.5, 30.6, 30.7
-value = Phi(x, y, z)
-```
+Bug reports, ideas and pull requests are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md).

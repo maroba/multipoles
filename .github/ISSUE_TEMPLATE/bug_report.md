@@ -11,17 +11,25 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **To Reproduce**
-Steps to reproduce the behavior.
+A minimal code example that shows the problem, e.g.
+
+```python
+from multipoles import MultipoleExpansion
+
+Phi = MultipoleExpansion(...)
+...
+```
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+What you expected to happen, and what happened instead. Please include the full error message or
+traceback, if there is one.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Versions**
+Please paste the output of
 
-**Desktop (please complete the following information):**
- - OS: [e.g. macOS]
- - Version [e.g. 0.3.2]
+```
+python -c "import sys, numpy, scipy, multipoles; print(sys.version, numpy.__version__, scipy.__version__, multipoles.__version__)"
+```
 
 **Additional context**
 Add any other context about the problem here.

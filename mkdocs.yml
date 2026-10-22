@@ -1,6 +1,30 @@
-site_name: multipoles Docs
+site_name: multipoles
+site_description: Multipole expansions of electrostatic and gravitational potentials in Python
+site_url: https://maroba.github.io/multipoles/
+repo_url: https://github.com/maroba/multipoles
+repo_name: maroba/multipoles
+edit_uri: edit/master/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.copy
+    - navigation.sections
+    - navigation.top
 
 plugins:
+  - search
   - mkdocstrings:
       handlers:
         python:
@@ -8,20 +32,31 @@ plugins:
             docstring_style: google
             docstring_options:
               returns_named_value: false
-
-theme:
-  name: "readthedocs"
+  - mkdocs-jupyter:
+      include: ["*.ipynb"]
+      ignore: ["*.md"]  # otherwise every markdown page is read with jupytext
+      execute: true
+      allow_errors: false
+      include_source: true
 
 markdown_extensions:
+  - admonition
+  - tables
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      check_paths: true
 
 extra_javascript:
   - javascripts/mathjax.js
   - https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js
 
 nav:
-  - 'Home': index.md
-  - usage.md
-  - theory.md
-  - 'API Reference': reference.md
+  - Home: index.md
+  - Usage: usage.md
+  - Theory: theory.md
+  - Accuracy: accuracy.ipynb
+  - API Reference: reference.md
+  - Changelog: changelog.md
