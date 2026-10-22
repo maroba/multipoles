@@ -1,17 +1,16 @@
+from __future__ import annotations
+
+import warnings
+
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy.integrate import simpson
-
-try:
-    from scipy.special import sph_harm_y
-except ImportError:  # SciPy < 1.15
-    from scipy.special import sph_harm as _sph_harm
-
-    def sph_harm_y(n, m, theta, phi):
-        return _sph_harm(m, n, phi, theta)
-
 
 # Distances below this threshold are considered to be zero
 _EPS = 1.0e-6
+
+# Number of points evaluated at once by MultipoleExpansion.field, to limit memory usage
+_CHUNK_SIZE = 2**16
 
 
 class MultipoleExpansion(object):
@@ -20,9 +19,30 @@ class MultipoleExpansion(object):
     Determines the spherical multipole moments of the given distribution and
     can calculate the solution of the electrostatic or gravitational potential
     based on the multipole expansion.
+
+    Attributes:
+        l_max (int): The maximum multipole moment of the expansion.
+        exterior (bool): Whether this is an exterior expansion.
+        interior (bool): Whether this is an interior expansion.
+        center (numpy.ndarray): The expansion center.
+        center_of_charge (numpy.ndarray): The center of charge, weighted by the absolute
+            values of the charges.
+        total_charge (float): The total charge.
+        validity_radius (float): The exterior expansion converges outside, the interior
+            expansion inside the sphere of this radius about the expansion center.
+        multipole_moments (dict): The multipole moments q_lm (exterior) or I_lm
+            (interior), with keys (l, m).
     """
 
-    def __init__(self, charge_dist, l_max, exterior=None, interior=None):
+    def __init__(
+        self,
+        charge_dist: dict,
+        l_max: int,
+        exterior: bool | None = None,
+        interior: bool | None = None,
+        center: ArrayLike | None = None,
+        charge_tol: float = 1e-6,
+    ):
         """Create a MultipoleExpansion object for a given charge or mass distribution.
 
         Args:
@@ -51,15 +71,28 @@ class MultipoleExpansion(object):
                 If `False`, the interior expansion is used.
             interior (bool): Whether to perform an interior expansion. Alternative to
                 `exterior`; only one of both needs to be given.
+            center (array_like, optional): The point (x, y, z) about which to expand.
+                Defaults to the center of charge, weighted by the absolute values of
+                the charges.
+            charge_tol (float): Fraction of the total absolute charge of a continuous
+                distribution that may be ignored when determining the region where
+                the expansion is valid (see `validity_radius`). Smooth densities like
+                gaussians never vanish exactly, so without such a tolerance no point
+                of the grid would count as outside the distribution.
 
-        The expansion is done about the center of charge, which is weighted by the
-        absolute value of the charges.
+        The exterior expansion converges only outside the smallest sphere about the
+        center that contains all charge, the interior expansion only inside the largest
+        sphere about the center that contains no charge. The radius of this sphere is
+        stored in `validity_radius`. Evaluating the expansion at points where it does
+        not converge emits an `ExpansionValidityWarning`. To turn these warnings into
+        errors, use `warnings.simplefilter("error", ExpansionValidityWarning)`.
 
         Raises:
             InvalidChargeDistributionException: If `charge_dist` is malformed, the total
                 absolute charge is zero, or the grid is invalid.
             InvalidExpansionException: If `interior` and `exterior` contradict each other,
                 or an interior expansion is requested with charge at the expansion center.
+            ValueError: If `center` is not a finite point in 3D.
 
         Examples:
             A discrete charge distribution: two point charges with positive and negative
@@ -76,10 +109,10 @@ class MultipoleExpansion(object):
             >>> Phi = MultipoleExpansion(charge_dist, l_max=2)
 
             A continuous charge distribution: the same charges, smeared out as gaussians
-            on a cubic grid of edge length 10 centered at the origin:
+            on a cubic grid of edge length 16 centered at the origin:
 
             >>> import numpy as np
-            >>> x, y, z = [np.linspace(-5, 5, 101)] * 3
+            >>> x, y, z = [np.linspace(-8, 8, 81)] * 3
             >>> XYZ = np.meshgrid(x, y, z, indexing='ij')
             >>> def gaussian(XYZ, xyz0, sigma):
             ...     g = np.ones_like(XYZ[0])
@@ -89,8 +122,10 @@ class MultipoleExpansion(object):
             >>> rho = gaussian(XYZ, (0, 0, 1), 1.5) - gaussian(XYZ, (0, 0, -1), 1.5)
             >>> Phi = MultipoleExpansion({'discrete': False, 'rho': rho, 'xyz': XYZ}, l_max=2)
 
-            Evaluate the expansion at arbitrary points with `Phi(x, y, z)`, or on the
-            grid points of a continuous distribution with `Phi[...]`.
+            Evaluate the potential at arbitrary points with `Phi(x, y, z)` or on the
+            grid points of a continuous distribution with `Phi[...]`, and the field
+            with `Phi.field(x, y, z)`. The examples of these methods use `Phi` and
+            `gaussian` from here.
         """
 
         self.charge_dist = charge_dist
@@ -110,33 +145,18 @@ class MultipoleExpansion(object):
 
         self._assert_charge_dist()
 
+        if l_max < 0 or l_max != int(l_max):
+            raise ValueError("'lmax' must be integer >= 0.")
+        self.l_max = l_max
+
+        # Represent both kinds of distributions as charges (weights) at points xyz
         if charge_dist["discrete"]:
             self.charges = list(charge_dist["charges"])
-
-            # calculate center of internal coordinate system = center of absolute charge
-            center = np.zeros(3)
-            q_total = 0
-            for chg in self.charges:
-                q = abs(chg["q"])
-                q_total += q
-                xyz = np.array(chg["xyz"])
-                center += q * xyz
-            if q_total == 0:
-                raise InvalidChargeDistributionException(
-                    "Total absolute charge must not be zero."
-                )
-            center /= q_total
-
-            self.center_of_charge = center
-
-            if self.interior and any(
-                chg["q"] != 0 and np.linalg.norm(np.asarray(chg["xyz"]) - center) < _EPS
-                for chg in self.charges
-            ):
-                raise InvalidExpansionException(
-                    "Interior expansion requires all charges to be away from the "
-                    "expansion center (the center of charge)."
-                )
+            xyz = np.array([chg["xyz"] for chg in self.charges], dtype=float).reshape(-1, 3)
+            weights = np.array([chg["q"] for chg in self.charges], dtype=float)
+            center_weights = np.abs(weights)
+            # point charges have exact positions, there is nothing to neglect
+            charge_tol = 0
 
         else:
             rho = np.asarray(charge_dist["rho"])
@@ -165,44 +185,52 @@ class MultipoleExpansion(object):
             self.dvol = np.prod(self.dxyz)
             self.external_coords = X, Y, Z
             self.rho = rho
-            self.total_charge = np.sum(rho) * self.dvol
 
-            # The center of charge expressed in the external coordinate system
-            q_abs = np.sum(np.abs(rho)) * self.dvol
-            if q_abs == 0:
-                raise InvalidChargeDistributionException(
-                    "Total absolute charge must not be zero."
-                )
-            self.center_of_charge = (
-                np.array([np.sum(np.abs(rho) * c) for c in [X, Y, Z]])
-                * self.dvol
-                / q_abs
+            # Integrals over the grid become weighted sums with the Simpson weights
+            wx, wy, wz = (_simpson_weights(n, d) for n, d in zip(rho.shape, self.dxyz))
+            weights = (wx[:, None, None] * wy[None, :, None] * wz[None, None, :] * rho).ravel()
+            xyz = np.stack([X.ravel(), Y.ravel(), Z.ravel()], axis=1)
+            # Plain average over the grid for the center of charge: the Simpson weights
+            # are not symmetric for grids with an even number of points, and would shift
+            # the center of symmetric distributions
+            center_weights = np.abs(rho).ravel()
+
+        q_abs = np.sum(np.abs(weights))
+        if q_abs == 0:
+            raise InvalidChargeDistributionException(
+                "Total absolute charge must not be zero."
             )
+        self.total_charge = np.sum(weights)
+        self.center_of_charge = center_weights @ xyz / np.sum(center_weights)
+        self.center = self._validated_center(center)
 
-            # The internal coordinate system is centered at the center of charge
+        # The charges relative to the expansion center; points without charge are dropped
+        nonzero = weights != 0
+        self._charge_xyz = xyz[nonzero] - self.center
+        self._charge_weights = weights[nonzero]
+
+        r = np.linalg.norm(self._charge_xyz, axis=1)
+        if self.interior and np.any(r < _EPS):
+            raise InvalidExpansionException(
+                "Interior expansion requires zero charge at the expansion center."
+            )
+        self.validity_radius = _validity_radius(
+            r, self._charge_weights, charge_tol, self.exterior
+        )
+
+        if not charge_dist["discrete"]:
+            # The grid in the internal coordinate system centered at the expansion center
             self.internal_coords = tuple(
-                c - self.center_of_charge[k] for c, k in zip([X, Y, Z], range(3))
+                c - self.center[k] for c, k in zip([X, Y, Z], range(3))
             )
             self.internal_coords_spherical = cartesian_to_spherical(
                 *self.internal_coords
             )
 
-            if self.interior and np.any(
-                (self.internal_coords_spherical[0] < _EPS) & (rho != 0)
-            ):
-                raise InvalidExpansionException(
-                    "Interior expansion requires zero charge density at the "
-                    "expansion center (the center of charge)."
-                )
-
-        if l_max < 0 or l_max != int(l_max):
-            raise ValueError("'lmax' must be integer >= 0.")
-        self.l_max = l_max
-
         # The multipole moments are a dict with (l,m) as keys
         self.multipole_moments = self._calc_multipole_moments()
 
-    def __call__(self, *xyz, l_max=None):
+    def __call__(self, *xyz: ArrayLike, l_max: int | None = None) -> float | np.ndarray:
         """Evaluate the multipole expansion at points with given coordinates.
 
         Args:
@@ -219,15 +247,19 @@ class MultipoleExpansion(object):
             float | numpy.ndarray: The value of the potential: a float for a single point,
                 otherwise an array of the broadcast shape of the coordinates.
 
+        Warns:
+            ExpansionValidityWarning: If some of the points lie where the expansion does
+                not converge.
+
         Examples:
-            >>> Phi(30.5, 30.6, 30.7)
-            >>> Phi(30.5, 30.6, 30.7, l_max=1)  # monopole and dipole only
-            >>> Phi(np.linspace(10, 20, 5), 0, 0)  # 5 points on the x-axis
+            >>> value = Phi(30.5, 30.6, 30.7)
+            >>> value = Phi(30.5, 30.6, 30.7, l_max=1)  # monopole and dipole only
+            >>> values = Phi(np.linspace(10, 20, 5), 0, 0)  # 5 points on the x-axis
         """
 
         return self._eval(xyz, l_max)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> np.ndarray:
         """Evaluate the multipole expansion on grid points of the charge distribution.
 
         Only available for continuous charge distributions.
@@ -244,17 +276,19 @@ class MultipoleExpansion(object):
         Raises:
             TypeError: If the charge distribution is discrete.
 
+        Warns:
+            ExpansionValidityWarning: If some of the points lie where the expansion does
+                not converge.
+
         Examples:
-            >>> x, y, z = [np.linspace(-5, 5, 51)] * 3
+            >>> x, y, z = [np.linspace(-8, 8, 81)] * 3
             >>> X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
             >>> rho = gaussian((X, Y, Z), (0, 0, 0), 1.5)
             >>> mpe = MultipoleExpansion({'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3)
 
-            Evaluate on the whole grid (a 51x51x51 array) or on the plane `z = -5`
-            (a 51x51 array):
+            Evaluate on the plane `z = -8` (an 81x81 array):
 
-            >>> mpe[:, :, :]
-            >>> mpe[:, :, 0]
+            >>> plane = mpe[:, :, 0]
 
             Evaluate only on the boundary of the grid, using a boolean mask:
 
@@ -269,7 +303,106 @@ class MultipoleExpansion(object):
                 "charge distributions. Use Phi(x, y, z) instead."
             )
         r, phi, theta = self.internal_coords_spherical
+        self._check_validity(r[key])
         return sum(self._contribs_spherical(r[key], phi[key], theta[key], self.l_max))
+
+    def field(self, *xyz: ArrayLike, l_max: int | None = None) -> np.ndarray:
+        """Evaluate the field E = -∇Φ of the multipole expansion.
+
+        The derivatives are computed analytically from the multipole moments.
+
+        Args:
+            *xyz (float | array_like): The x, y, z coordinates of the points, as for
+                `__call__`.
+            l_max (int, optional): Only use contributions up to this angular momentum,
+                as for `__call__`.
+
+        Returns:
+            numpy.ndarray: The field components (E_x, E_y, E_z), stacked along the first
+                axis: shape (3,) for a single point, otherwise (3, *shape) where shape
+                is the broadcast shape of the coordinates.
+
+        Warns:
+            ExpansionValidityWarning: If some of the points lie where the expansion does
+                not converge.
+
+        Examples:
+            >>> Ex, Ey, Ez = Phi.field(30.5, 30.6, 30.7)
+            >>> E = Phi.field(np.linspace(10, 20, 5), 0, 0)  # shape (3, 5)
+        """
+        l_max = self._validated_l_max(l_max)
+        r, phi, theta = cartesian_to_spherical(*self._internal_coords(xyz))
+        self._check_validity(r)
+
+        shape = np.shape(r)
+        r, phi, theta = (np.ravel(a) for a in (r, phi, theta))
+        E = np.empty((3, r.size))
+        for start in range(0, r.size, _CHUNK_SIZE):
+            chunk = slice(start, start + _CHUNK_SIZE)
+            E[:, chunk] = self._field_spherical(r[chunk], phi[chunk], theta[chunk], l_max)
+        return E.reshape((3,) + shape)
+
+    def is_valid(self, *xyz: ArrayLike) -> bool | np.ndarray:
+        """Check where the multipole expansion converges.
+
+        Args:
+            *xyz (float | array_like): The x, y, z coordinates of the points, as for
+                `__call__`.
+
+        Returns:
+            bool | numpy.ndarray: Whether the expansion converges at each point, i.e.
+                whether the point lies outside (exterior expansion) or inside (interior
+                expansion) the sphere of radius `validity_radius` about the expansion
+                center.
+
+        Examples:
+            >>> X, Y, Z = Phi.external_coords
+            >>> valid = Phi.is_valid(X, Y, Z)  # boolean mask of the grid
+            >>> values = np.full(valid.shape, np.nan)
+            >>> values[valid] = Phi[valid]
+        """
+        x, y, z = self._internal_coords(xyz)
+        return self._is_valid_radius(np.sqrt(x**2 + y**2 + z**2))[()]
+
+    @property
+    def dipole_moment(self) -> np.ndarray:
+        """The dipole moment vector p = Σ q (r - center), about the expansion center."""
+        return self._charge_weights @ self._charge_xyz
+
+    @property
+    def quadrupole_moment(self) -> np.ndarray:
+        """The traceless quadrupole moment tensor, about the expansion center.
+
+        Q_ij = Σ q (3 x_i x_j - r^2 δ_ij), with x = r - center, so that the potential
+        is Φ = q / r + p·x / r^3 + Σ_ij Q_ij x_i x_j / (2 r^5) + ...
+        """
+        xyz, w = self._charge_xyz, self._charge_weights
+        r2 = np.sum(xyz**2, axis=1)
+        return 3 * (w[:, None] * xyz).T @ xyz - np.sum(w * r2) * np.eye(3)
+
+    @property
+    def multipole_moments_array(self) -> np.ndarray:
+        """The multipole moments q_lm as array of shape (l_max + 1, 2 l_max + 1).
+
+        Index it as `[l, m]`, with negative `m` wrapping around as usual in Python.
+        Entries with |m| > l are zero.
+        """
+        moments = np.zeros((self.l_max + 1, 2 * self.l_max + 1), dtype=complex)
+        for (l, m), q_lm in self.multipole_moments.items():
+            moments[l, m] = q_lm
+        return moments
+
+    def __repr__(self) -> str:
+        if self.charge_dist["discrete"]:
+            distribution = "{} point charges".format(len(self.charges))
+        else:
+            distribution = "charge density on {}x{}x{} grid".format(*self.rho.shape)
+        return "MultipoleExpansion({}, l_max={}, {}, center={})".format(
+            distribution,
+            self.l_max,
+            "exterior" if self.exterior else "interior",
+            (np.round(self.center, 6) + 0.0).tolist(),  # + 0.0 turns -0.0 into 0.0
+        )
 
     def _eval(self, xyz, l_max=None):
         """
@@ -291,14 +424,32 @@ class MultipoleExpansion(object):
             in the evaluation.
         """
 
+        l_max = self._validated_l_max(l_max)
+        r, phi, theta = cartesian_to_spherical(*self._internal_coords(xyz))
+        self._check_validity(r, stacklevel=4)  # called via __call__
+        return sum(self._contribs_spherical(r, phi, theta, l_max))[()]
+
+    def _validated_l_max(self, l_max):
         if l_max is None:
-            l_max = self.l_max
+            return self.l_max
         if l_max > self.l_max:
             raise ValueError(
                 "Multipole expansion only contains multipoles up to l_max={}.".format(
                     self.l_max
                 )
             )
+        return l_max
+
+    def _validated_center(self, center):
+        if center is None:
+            return self.center_of_charge
+        center = np.asarray(center, dtype=float)
+        if center.shape != (3,) or not np.all(np.isfinite(center)):
+            raise ValueError("'center' must be a finite point (x, y, z).")
+        return center
+
+    def _internal_coords(self, xyz):
+        """Broadcast the coordinates and shift them to the expansion center."""
         assert isinstance(xyz, tuple) and len(xyz) == 3
 
         coords = [np.asarray(c, dtype=float) for c in xyz]
@@ -310,15 +461,36 @@ class MultipoleExpansion(object):
                     [c.shape for c in coords]
                 )
             ) from None
+        return tuple(c - c0 for c, c0 in zip(coords, self.center))
 
-        return sum(self._multipole_contribs(coords, l_max))[()]
+    def _check_validity(self, r, stacklevel=3):
+        """Warn if some of the points with internal radii r lie where the expansion diverges."""
+        n_invalid = np.size(r) - np.count_nonzero(self._is_valid_radius(r))
+        if n_invalid:
+            warnings.warn(
+                "{} of {} points lie {} the sphere of radius {:.4g} about the expansion "
+                "center {}, where the {} expansion does not converge.".format(
+                    n_invalid,
+                    np.size(r),
+                    "inside" if self.exterior else "outside",
+                    self.validity_radius,
+                    (np.round(self.center, 6) + 0.0).tolist(),  # + 0.0 turns -0.0 into 0.0
+                    "exterior" if self.exterior else "interior",
+                ),
+                ExpansionValidityWarning,
+                stacklevel=stacklevel,
+            )
+
+    def _is_valid_radius(self, r):
+        if self.exterior:
+            return r > self.validity_radius
+        return r < self.validity_radius
 
     def _multipole_contribs(self, xyz, l_max=None):
         if l_max is None:
             l_max = self.l_max
 
-        x, y, z = (np.asarray(c, dtype=float) - c0 for c, c0 in zip(xyz, self.center_of_charge))
-        r, phi, theta = cartesian_to_spherical(x, y, z)
+        r, phi, theta = cartesian_to_spherical(*self._internal_coords(tuple(xyz)))
         return self._contribs_spherical(r, phi, theta, l_max)
 
     def _contribs_spherical(self, r, phi, theta, l_max):
@@ -326,67 +498,83 @@ class MultipoleExpansion(object):
         if self.exterior:
             r = np.maximum(r, _EPS)
 
-        mp_contribs = []
-
-        for l in range(l_max + 1):
-            phi_l = 0
-            for m in range(-l, l + 1):
-                Y_lm = sph_harm_y(l, m, theta, phi)
-                q_lm = self.multipole_moments[(l, m)]
-                if self.exterior:
-                    phi_l += (
-                        np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm / r ** (l + 1)
+        angular = [0] * (l_max + 1)
+        for m, column in _racah_columns(l_max, theta, phi):
+            for l, C_lm in zip(range(m, l_max + 1), column):
+                angular[l] = angular[l] + self.multipole_moments[(l, m)] * C_lm
+                if m > 0:
+                    # C_l,-m = (-1)^m conj(C_lm)
+                    angular[l] = angular[l] + (
+                        self.multipole_moments[(l, -m)] * (-1) ** m * np.conj(C_lm)
                     )
-                else:
-                    phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm * r**l
-            mp_contribs.append(np.real(phi_l)[()])
+
+        mp_contribs = []
+        for l in range(l_max + 1):
+            radial = r ** -(l + 1) if self.exterior else r**l
+            mp_contribs.append(np.real(angular[l] * radial)[()])
         return mp_contribs
 
-    def _calc_multipole_moments(self):
-        moments = {}
-        for l in range(0, self.l_max + 1):
+    def _field_spherical(self, r, phi, theta, l_max):
+        """The field E = -grad(Phi) at points given as 1D arrays of internal spherical coordinates."""
+        if self.exterior:
+            r = np.maximum(r, _EPS)
+
+        # Solid harmonics r^l C_lm (interior) or C_lm / r^(l+1) (exterior), of the orders
+        # l -/+ 1 needed for the gradient of the terms up to l_max
+        l_solid = l_max + 1 if self.exterior else l_max - 1
+        solid_harmonics = {}
+        for m, column in _racah_columns(l_solid, theta, phi):
+            for l, C_lm in zip(range(m, l_solid + 1), column):
+                radial = r ** -(l + 1) if self.exterior else r**l
+                solid_harmonics[(l, m)] = C_lm * radial
+                if m > 0:
+                    solid_harmonics[(l, -m)] = (-1) ** m * np.conj(C_lm) * radial
+
+        def solid(l, m):
+            return solid_harmonics.get((l, m), 0)
+
+        # Gradient in the components d/dz and D± = d/dx ± i d/dy, using the ladder
+        # relations of the solid harmonics
+        grad_z, grad_p, grad_m = 0, 0, 0
+        for l in range(l_max + 1):
             for m in range(-l, l + 1):
-                moments[(l, m)] = self._calc_multipole_coef(l, m)
-        return moments
-
-    def _calc_multipole_coef(self, l, m):
-
-        prefac = np.sqrt(4 * np.pi / (2 * l + 1))
-
-        if self.charge_dist["discrete"]:
-            q_lm = 0
-            for chg in self.charges:
-                xyz = np.asarray(chg["xyz"]) - self.center_of_charge
-                q = chg["q"]
-                if q == 0:
-                    continue
-                r, phi, theta = cartesian_to_spherical(*xyz)
-                Y_lm = sph_harm_y(l, m, theta, phi)
+                q_lm = self.multipole_moments[(l, m)]
                 if self.exterior:
-                    q_lm += q * r**l * np.conj(Y_lm)
+                    grad_z -= q_lm * np.sqrt((l + m + 1) * (l - m + 1)) * solid(l + 1, m)
+                    grad_p += q_lm * np.sqrt((l + m + 1) * (l + m + 2)) * solid(l + 1, m + 1)
+                    grad_m -= q_lm * np.sqrt((l - m + 1) * (l - m + 2)) * solid(l + 1, m - 1)
                 else:
-                    q_lm += q / r ** (l + 1) * np.conj(Y_lm)
-            q_lm *= prefac
-            return q_lm
-        else:
-            R, Phi, Theta = self.internal_coords_spherical
-            Y_lm = sph_harm_y(l, m, Theta, Phi)
-            if self.exterior:
-                integrand = R**l * self.rho * np.conj(Y_lm)
-            else:
-                # rho vanishes where R < _EPS (checked in __init__), so clipping R
-                # avoids 0 * inf = nan without changing the integral
-                integrand = self.rho * np.conj(Y_lm) / np.maximum(R, _EPS) ** (l + 1)
-            return self._integrate(integrand) * prefac
+                    grad_z += q_lm * np.sqrt((l + m) * (l - m)) * solid(l - 1, m)
+                    grad_p += q_lm * np.sqrt((l - m) * (l - m - 1)) * solid(l - 1, m + 1)
+                    grad_m -= q_lm * np.sqrt((l + m) * (l + m - 1)) * solid(l - 1, m - 1)
 
-    def _integrate(self, integrand):
-        return simpson(
-            simpson(
-                simpson(integrand, dx=self.dxyz[2], axis=-1), dx=self.dxyz[1], axis=-1
-            ),
-            dx=self.dxyz[0],
-            axis=-1,
-        )
+        grad = [(grad_p + grad_m) / 2, (grad_p - grad_m) / 2j, grad_z]
+        # Components without any contribution are scalar zeros
+        return [-np.broadcast_to(np.real(g), r.shape) for g in grad]
+
+    def _calc_multipole_moments(self):
+        r, phi, theta = cartesian_to_spherical(*self._charge_xyz.T)
+
+        # The charges times r^l (exterior) or 1 / r^(l+1) (interior), for each l
+        weighted = []
+        factor = self._charge_weights if self.exterior else self._charge_weights / r
+        for l in range(self.l_max + 1):
+            weighted.append(factor)
+            factor = factor * r if self.exterior else factor / r
+
+        moments = {}
+        for m, column in _racah_columns(self.l_max, theta, phi):
+            for l, C_lm in zip(range(m, self.l_max + 1), column):
+                moments[(l, m)] = np.dot(weighted[l], np.conj(C_lm))
+                if m > 0:
+                    # C_l,-m = (-1)^m conj(C_lm)
+                    moments[(l, -m)] = (-1) ** m * np.dot(weighted[l], C_lm)
+
+        return {
+            (l, m): moments[(l, m)]
+            for l in range(self.l_max + 1)
+            for m in range(-l, l + 1)
+        }
 
     def _assert_charge_dist(self):
 
@@ -409,11 +597,71 @@ class MultipoleExpansion(object):
 
 
 class InvalidChargeDistributionException(Exception):
-    pass
+    """Raised when the charge distribution is malformed or cannot be expanded, e.g. because
+    keys are missing, its total absolute charge is zero, or the grid is invalid."""
 
 
 class InvalidExpansionException(Exception):
-    pass
+    """Raised when the requested expansion is contradictory or impossible, e.g. an interior
+    expansion with charge at the expansion center."""
+
+
+class ExpansionValidityWarning(UserWarning):
+    """Emitted when the expansion is evaluated at points where it does not converge."""
+
+
+def _racah_columns(l_max, theta, phi):
+    """Spherical harmonics in Racah normalization, C_lm = sqrt(4 pi / (2l+1)) Y_lm.
+
+    Yields (m, [C_mm, C_m+1,m, ..., C_l_max,m]) for m = 0, ..., l_max, computed with
+    the standard three-term recurrence of the associated Legendre functions. The
+    harmonics for negative m follow from C_l,-m = (-1)^m conj(C_lm).
+    """
+    x, s = np.cos(theta), np.sin(theta)
+    e_iphi = np.exp(1j * np.asarray(phi))
+    # sqrt((l-m)! / (l+m)!) P_lm(cos theta) for l = m, with Condon-Shortley phase
+    c_mm = np.ones_like(x)
+    e_imphi = np.ones_like(e_iphi)
+    for m in range(l_max + 1):
+        if m > 0:
+            c_mm = -np.sqrt((2 * m - 1) / (2 * m)) * s * c_mm
+            e_imphi = e_imphi * e_iphi
+        column = [c_mm]
+        if m < l_max:
+            column.append(np.sqrt(2 * m + 1) * x * c_mm)
+        for l in range(m + 2, l_max + 1):
+            column.append(
+                (
+                    (2 * l - 1) * x * column[-1]
+                    - np.sqrt((l - 1) ** 2 - m**2) * column[-2]
+                )
+                / np.sqrt(l**2 - m**2)
+            )
+        yield m, [c * e_imphi for c in column]
+
+
+def _simpson_weights(n, dx):
+    """Weights w such that sum(w * f) equals simpson(f, dx=dx) for 1D arrays f of length n."""
+    return simpson(np.eye(n), dx=dx, axis=-1)
+
+
+def _validity_radius(r, charges, charge_tol, exterior):
+    """Radius of the sphere about the expansion center that separates the charges
+    at radii r from the region where the expansion converges.
+
+    For the exterior expansion, this is the radius of the smallest sphere containing
+    all but a fraction `charge_tol` of the absolute charge. For the interior expansion,
+    it is the radius of the largest sphere containing at most this fraction.
+    """
+    weights = np.abs(charges)
+    order = np.argsort(r)
+    radii = r[order]
+    cumulative = np.cumsum(weights[order]) / np.sum(weights)
+    if exterior:
+        idx = np.searchsorted(cumulative, 1 - charge_tol, side="left")
+    else:
+        idx = np.searchsorted(cumulative, charge_tol, side="right")
+    return radii[min(idx, len(radii) - 1)]
 
 
 def cartesian_to_spherical(*coords):
