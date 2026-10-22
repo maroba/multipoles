@@ -25,7 +25,7 @@ jobs:
           python -m pip install --upgrade pip wheel
           python -m pip install codecov pytest pytest-cov
           # install dependencies
-          pip install -e .[all]
+          pip install -e .
           # show installed packages
           pip freeze
       - name: Test with pytest
@@ -35,3 +35,22 @@ jobs:
         run: |
           pytest --cov --cov-report=html
           codecov -t ${{ secrets.CODECOV_TOKEN }}
+
+  docs:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . -r docs/requirements.txt
+      - name: Build documentation
+        # strict: fail on warnings, e.g. broken docstrings or links; also runs the notebooks
+        run: |
+          mkdocs build --strict
