@@ -277,24 +277,6 @@ class TestMultipoleExpansion(unittest.TestCase):
         expected = [mpe(x, x, 0) for x in where_to_eval]
         npt.assert_allclose(expected, actual)
 
-    def test_gaussian_dipole_at_center(self):
-        x, y, z = [np.linspace(-5, 5, 51)] * 3
-        X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
-        sigma = 1.5
-        rho = gaussian((X, Y, Z), (1, 0, 0), sigma) - gaussian((X, Y, Z), (-1, 0, 0), sigma)
-        mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3)
-
-        self.assertAlmostEqual(0, mpe.total_charge, places=4)
-
-        # dipole term for point charges obtained from hand calculation: q1,-1 = -sqrt(2), q10 = 0
-        #  ==> phi_1(10e_x) = 0.02, but octupole also contributes to total phi!
-
-        phi_l = mpe._multipole_contribs((10, 0, 0))
-        np.testing.assert_array_almost_equal((0, 0.02, 0, 0), phi_l, decimal=3)
-
-        self.assertAlmostEqual(mpe._eval((10, 0, 0), 3), 1 / 9. - 1 / 11., places=3)
-        self.assertAlmostEqual(mpe(10, 0, 0), 1 / 9. - 1 / 11., places=3)
-
     def test_issue_7(self):
         # Phi(x,y,z) gives different answers if entire system is shifted #7
         charge_dist = {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 0.5)}, {'q': -1, 'xyz': (0, 0, -1)}]}
@@ -321,6 +303,109 @@ class TestMultipoleExpansion(unittest.TestCase):
         self.assertAlmostEqual(np.min(Phi), -np.pi)
         self.assertAlmostEqual(np.max(Theta), np.pi)
 
+    def test_call_respects_l_max(self):
+        mpe = MultipoleExpansion(DIPOLE_Z, l_max=3)
+
+        # total charge is zero, so the monopole contribution vanishes
+        self.assertAlmostEqual(0, mpe(0, 0, 5, l_max=0))
+        self.assertAlmostEqual(sum(mpe._multipole_contribs((0, 0, 5))[:2]), mpe(0, 0, 5, l_max=1))
+        self.assertRaises(ValueError, lambda: mpe(0, 0, 5, l_max=4))
+
+    def test_exterior_false_means_interior(self):
+        mpe = MultipoleExpansion(DIPOLE_Z, l_max=2, exterior=False)
+        self.assertTrue(mpe.interior)
+        self.assertFalse(mpe.exterior)
+
+        mpe = MultipoleExpansion(DIPOLE_Z, l_max=2, interior=False)
+        self.assertTrue(mpe.exterior)
+        self.assertFalse(mpe.interior)
+
+    def test_getitem_matches_call_for_interior_expansion(self):
+        X, Y, Z = grid(-6, 6, 25)
+        rho = gaussian((X, Y, Z), (3, 3, 3), 1) - gaussian((X, Y, Z), (-3, -3, -3), 1)
+        mpe = MultipoleExpansion({'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3, interior=True)
+
+        idx = (12, 13, 12)
+        self.assertAlmostEqual(mpe(X[idx], Y[idx], Z[idx]), mpe[idx])
+        npt.assert_allclose(mpe[:, :, 12], mpe(X[:, :, 12], Y[:, :, 12], Z[:, :, 12]))
+
+    def test_getitem_does_not_modify_internal_coords(self):
+        X, Y, Z = grid(-5, 5, 21)
+        rho = gaussian((X, Y, Z), (0, 0, 0), 1.5)
+        mpe = MultipoleExpansion({'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=2)
+        R = mpe.internal_coords_spherical[0].copy()
+
+        mpe[:, :, :]
+
+        npt.assert_array_equal(R, mpe.internal_coords_spherical[0])
+
+    def test_getitem_with_single_index(self):
+        X, Y, Z = grid(-5, 5, 21)
+        rho = gaussian((X, Y, Z), (0, 0, 0), 1.5)
+        mpe = MultipoleExpansion({'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=2)
+
+        self.assertEqual((21, 21), mpe[0].shape)
+
+    def test_getitem_for_discrete_charges_raises(self):
+        mpe = MultipoleExpansion(DIPOLE_Z, l_max=2)
+        self.assertRaises(TypeError, lambda: mpe[0, 0, 0])
+
+    def test_zero_total_charge_raises(self):
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(
+            {'discrete': True, 'charges': [{'q': 0, 'xyz': (0, 0, 0)}]}, 1))
+
+        X, Y, Z = grid(-1, 1, 5)
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(
+            {'discrete': False, 'rho': np.zeros_like(X), 'xyz': (X, Y, Z)}, 1))
+
+    def test_interior_expansion_with_charge_at_center_raises(self):
+        self.assertRaises(InvalidExpansionException, lambda: MultipoleExpansion(
+            {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 0)}]}, 1, interior=True))
+
+        X, Y, Z = grid(-5, 5, 21)
+        rho = gaussian((X, Y, Z), (2, 0, 0), 1) + gaussian((X, Y, Z), (-2, 0, 0), 1)
+        self.assertRaises(InvalidExpansionException, lambda: MultipoleExpansion(
+            {'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, 1, interior=True))
+
+    def test_xy_indexed_meshgrid_raises(self):
+        x = np.linspace(-5, 5, 21)
+        X, Y, Z = np.meshgrid(x, x, x)
+        rho = gaussian((X, Y, Z), (0, 0, 0), 1.5)
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(
+            {'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, 1))
+
+    def test_mismatched_grid_shapes_raise(self):
+        X, Y, Z = grid(-5, 5, 21)
+        self.assertRaises(InvalidChargeDistributionException, lambda: MultipoleExpansion(
+            {'discrete': False, 'rho': np.ones((5, 5, 5)), 'xyz': (X, Y, Z)}, 1))
+
+    def test_descending_grid(self):
+        x = np.linspace(-7, 7, 51)
+        X, Y, Z = np.meshgrid(x[::-1], x, x, indexing='ij')
+        rho = gaussian((X, Y, Z), (0, 0, 0), 1.5)
+        mpe = MultipoleExpansion({'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=2)
+
+        self.assertAlmostEqual(1, mpe.total_charge, places=4)
+        self.assertAlmostEqual(erf(20 / 1.5) / 20, mpe(20, 0, 0), places=5)
+
+    def test_eval_with_multidimensional_arrays(self):
+        mpe = MultipoleExpansion(DIPOLE_Z, l_max=2)
+        x = np.array([[1., 2.], [3., 4.]])
+        z = 5 * np.ones((2, 2))
+
+        actual = mpe(x, 0, z)
+
+        self.assertEqual((2, 2), actual.shape)
+        npt.assert_allclose([[mpe(1, 0, 5), mpe(2, 0, 5)], [mpe(3, 0, 5), mpe(4, 0, 5)]], actual)
+
+    def test_eval_with_0d_arrays(self):
+        mpe = MultipoleExpansion(DIPOLE_Z, l_max=2)
+        self.assertAlmostEqual(mpe(1, 0, 5), mpe(np.array(1.), np.array(0.), np.array(5.)))
+
+    def test_eval_with_mismatched_array_lengths_raises(self):
+        mpe = MultipoleExpansion(DIPOLE_Z, l_max=2)
+        self.assertRaises(ValueError, lambda: mpe([1, 2], [1, 2, 3], 0))
+
 
 class TestCartesianToSpherical(unittest.TestCase):
 
@@ -338,6 +423,27 @@ class TestCartesianToSpherical(unittest.TestCase):
         actual = cartesian_to_spherical(0, -1, 0)
         expected = (1, -pi / 2, pi / 2)
         npt.assert_array_equal(expected, actual)
+
+    def test_origin(self):
+        npt.assert_array_equal((0, 0, np.pi / 2), cartesian_to_spherical(0, 0, 0))
+
+        R, Phi, Theta = cartesian_to_spherical(np.zeros(2), np.zeros(2), np.array([0., 1.]))
+        npt.assert_array_equal((0, 1), R)
+        npt.assert_array_equal((0, 0), Phi)
+        npt.assert_array_equal((np.pi / 2, 0), Theta)
+
+    def test_does_not_change_numpy_error_settings(self):
+        old = np.geterr()
+        cartesian_to_spherical(np.zeros(2), np.zeros(2), np.zeros(2))
+        self.assertEqual(old, np.geterr())
+
+
+DIPOLE_Z = {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 1)}, {'q': -1, 'xyz': (0, 0, -1)}]}
+
+
+def grid(lo, hi, n):
+    x = np.linspace(lo, hi, n)
+    return np.meshgrid(x, x, x, indexing='ij')
 
 
 def gaussian(XYZ, xyz0, sigma):

@@ -1,7 +1,17 @@
 import numpy as np
-import numbers
-from scipy.special import sph_harm
 from scipy.integrate import simpson
+
+try:
+    from scipy.special import sph_harm_y
+except ImportError:  # SciPy < 1.15
+    from scipy.special import sph_harm as _sph_harm
+
+    def sph_harm_y(n, m, theta, phi):
+        return _sph_harm(m, n, phi, theta)
+
+
+# Distances below this threshold are considered to be zero
+_EPS = 1.0e-6
 
 
 class MultipoleExpansion(object):
@@ -23,9 +33,11 @@ class MultipoleExpansion(object):
 
                    `'discrete'`:    True
 
-                   `'q'`:           the charge (positive or negative floating point number)
+                   `'charges'`:     a list of dicts, one for each point charge, with the items
 
-                   `'xyz'`:         the location of the charge in cartesian coordinates
+                                    `'q'`: the charge (positive or negative floating point number)
+
+                                    `'xyz'`: the location of the charge in cartesian coordinates
                                     (a tuple, list or array of length 3)
 
                 For continuous charge distributions (charge density) the dict MUST contain the
@@ -34,7 +46,8 @@ class MultipoleExpansion(object):
                    'discrete':    False
                    'rho':         the 3D charge distribution (3D numpy array)
                    'xyz':         the domain of the charge distribution
-                                  (3-tuple of 3D coordinate arrays, see example below)
+                                  (3-tuple of 3D coordinate arrays as returned by
+                                  np.meshgrid(..., indexing='ij'), see example below)
 
             l_max (int): the maximum multipole moment to consider (0=monopole, 1=dipole, etc.)
 
@@ -105,25 +118,17 @@ class MultipoleExpansion(object):
         self.charge_dist = charge_dist
         if exterior is None and interior is None:
             exterior = True
-        elif (
-            interior is not None
-            and not interior
-            and exterior is not None
-            and not exterior
-        ):
-            raise InvalidExpansionException("Either interior or exeterior must be set.")
-        else:
-            exterior = bool(exterior)
-            interior = bool(interior)
-            exterior = exterior or not interior
-            interior = interior or not exterior
-            if interior and exterior:
+        elif exterior is None:
+            exterior = not interior
+        elif interior is not None and bool(exterior) == bool(interior):
+            if exterior:
                 raise InvalidExpansionException(
-                    "Interior and exeterior expansion cannot both be set."
+                    "Interior and exterior expansion cannot both be set."
                 )
+            raise InvalidExpansionException("Either interior or exterior must be set.")
 
-        self.exterior = exterior
-        self.interior = interior
+        self.exterior = bool(exterior)
+        self.interior = not self.exterior
 
         self._assert_charge_dist()
 
@@ -138,19 +143,47 @@ class MultipoleExpansion(object):
                 q_total += q
                 xyz = np.array(chg["xyz"])
                 center += q * xyz
+            if q_total == 0:
+                raise InvalidChargeDistributionException(
+                    "Total absolute charge must not be zero."
+                )
             center /= q_total
 
             self.center_of_charge = center
 
-        else:
-            rho = charge_dist["rho"]
-            X, Y, Z = charge_dist["xyz"]
+            if self.interior and any(
+                chg["q"] != 0 and np.linalg.norm(np.asarray(chg["xyz"]) - center) < _EPS
+                for chg in self.charges
+            ):
+                raise InvalidExpansionException(
+                    "Interior expansion requires all charges to be away from the "
+                    "expansion center (the center of charge)."
+                )
 
+        else:
+            rho = np.asarray(charge_dist["rho"])
+            X, Y, Z = (np.asarray(c) for c in charge_dist["xyz"])
+
+            if rho.ndim != 3 or any(c.shape != rho.shape for c in (X, Y, Z)):
+                raise InvalidChargeDistributionException(
+                    "'rho' and the coordinate arrays in 'xyz' must be 3D arrays of the same shape."
+                )
+            if min(rho.shape) < 2:
+                raise InvalidChargeDistributionException(
+                    "The grid must have at least 2 points along each axis."
+                )
+
+            # Absolute values, so that grids with descending coordinates work, too
             self.dxyz = (
-                (X[1, 0, 0] - X[0, 0, 0]),
-                (Y[0, 1, 0] - Y[0, 0, 0]),
-                (Z[0, 0, 1] - Z[0, 0, 0]),
+                abs(X[1, 0, 0] - X[0, 0, 0]),
+                abs(Y[0, 1, 0] - Y[0, 0, 0]),
+                abs(Z[0, 0, 1] - Z[0, 0, 0]),
             )
+            if 0 in self.dxyz:
+                raise InvalidChargeDistributionException(
+                    "Grid spacing is zero along at least one axis. Create the "
+                    "coordinate arrays with np.meshgrid(..., indexing='ij')."
+                )
             self.dvol = np.prod(self.dxyz)
             self.external_coords = X, Y, Z
             self.rho = rho
@@ -158,6 +191,10 @@ class MultipoleExpansion(object):
 
             # The center of charge expressed in the external coordinate system
             q_abs = np.sum(np.abs(rho)) * self.dvol
+            if q_abs == 0:
+                raise InvalidChargeDistributionException(
+                    "Total absolute charge must not be zero."
+                )
             self.center_of_charge = (
                 np.array([np.sum(np.abs(rho) * c) for c in [X, Y, Z]])
                 * self.dvol
@@ -171,6 +208,14 @@ class MultipoleExpansion(object):
             self.internal_coords_spherical = cartesian_to_spherical(
                 *self.internal_coords
             )
+
+            if self.interior and np.any(
+                (self.internal_coords_spherical[0] < _EPS) & (rho != 0)
+            ):
+                raise InvalidExpansionException(
+                    "Interior expansion requires zero charge density at the "
+                    "expansion center (the center of charge)."
+                )
 
         if l_max < 0 or l_max != int(l_max):
             raise ValueError("'lmax' must be integer >= 0.")
@@ -186,7 +231,8 @@ class MultipoleExpansion(object):
             xyz (3-tuple of floats|array): The x,y,z coordinates of the points where to evaluate the expansion.
                 If three floats are given, then only one point with coordinates (x, y, z)
                 is evaluated. If three arrays xyz=(x, y, z) are given, the evaluation is done at each
-                point (x[i], y[i], z[i]).
+                point (x[i], y[i], z[i]). Arrays may have any shape (numbers and arrays are
+                broadcast against each other); the result has the broadcast shape.
 
             l_max (int, optional): The maximum angular momentum to use for the expansion.
                 If no value is given, use l_max from the original computation of the expansion.
@@ -194,22 +240,22 @@ class MultipoleExpansion(object):
                 in the evaluation.
         """
 
-        return self._eval(xyz)
+        return self._eval(xyz, l_max)
 
-    def __getitem__(self, *mask):
+    def __getitem__(self, key):
         """
         Evaluate multipole expansion on grid points specified by mask
         or slices.
 
         Parameters
         ----------
-        mask: three slices or one mask array
-            Slices or boolean mask defining on which grid points to
-            evaluate the multipole expansion.
+        key: index expression (e.g. three slices) or boolean mask array
+            Defines on which points of the grid of the (continuous) charge
+            distribution to evaluate the multipole expansion.
 
         Returns
         -------
-        Array of shape defined by `mask` with the values evaluated from
+        Array of shape defined by `key` with the values evaluated from
         the multipole expansion.
 
         Examples
@@ -250,31 +296,13 @@ class MultipoleExpansion(object):
         >>> actual = np.zeros_like(rho)
         >>> actual[mask] = mpe[mask]
         """
-        if not isinstance(mask[0], np.ndarray):
-            mask = tuple(*mask)
-        else:
-            mask = mask[0]
-        mp_contribs = []
+        if self.charge_dist["discrete"]:
+            raise TypeError(
+                "Evaluation on grid points via [] is only available for continuous "
+                "charge distributions. Use Phi(x, y, z) instead."
+            )
         r, phi, theta = self.internal_coords_spherical
-
-        eps = 1.0e-6
-        if isinstance(r, np.ndarray):
-            r[np.abs(r) < eps] = eps
-        else:
-            if abs(r) < eps:
-                r = eps
-
-        for l in range(self.l_max + 1):
-            phi_l = 0
-            for m in range(-l, l + 1):
-                Y_lm = sph_harm(m, l, phi[mask], theta[mask])
-                q_lm = self.multipole_moments[(l, m)]
-                phi_l += (
-                    np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm / r[mask] ** (l + 1)
-                )
-            mp_contribs.append(phi_l.real)
-
-        return sum(mp_contribs)
+        return sum(self._contribs_spherical(r[key], phi[key], theta[key], self.l_max))
 
     def _eval(self, xyz, l_max=None):
         """
@@ -306,61 +334,37 @@ class MultipoleExpansion(object):
             )
         assert isinstance(xyz, tuple) and len(xyz) == 3
 
-        if any(hasattr(item, "__len__") for item in xyz):  # some args are array-like
-            # All passed arrays must have same length. Validate this and determine this
-            # length.
-            len_array = None
-            for item in xyz:
-                if hasattr(item, "__len__"):
-                    if len_array is None:
-                        len_array = len(item)
-                    else:
-                        if len(item) != len_array:
-                            raise ValueError(
-                                f"All arrays must have the same length. Received: {len_array} != {len(item)}"
-                            )
+        coords = [np.asarray(c, dtype=float) for c in xyz]
+        try:
+            coords = np.broadcast_arrays(*coords)
+        except ValueError:
+            raise ValueError(
+                "All arrays must have the same shape. Received: {}".format(
+                    [c.shape for c in coords]
+                )
+            ) from None
 
-            # If numbers are passed along with arrays, expand the numbers to constant
-            # arrays of the right size.
-            xyz = list(xyz)
-            for i in range(3):
-                if isinstance(xyz[i], numbers.Number):
-                    xyz[i] = np.ones(len_array) * xyz[i]
-            xyz = tuple(xyz)
+        return sum(self._multipole_contribs(coords, l_max))[()]
 
-            # Now do the evaluation
-            return np.array(
-                [
-                    sum(self._multipole_contribs((x, y, z))[: l_max + 1])
-                    for x, y, z in zip(*xyz)
-                ]
-            )
-        elif all(isinstance(item, numbers.Number) for item in xyz):
-            # only numbers were passed; evaluate at single point
-            return sum(self._multipole_contribs(xyz)[: l_max + 1])
-        else:
-            raise ValueError("Only triple of floats or tripe of arrays allowed.")
+    def _multipole_contribs(self, xyz, l_max=None):
+        if l_max is None:
+            l_max = self.l_max
 
-    def _multipole_contribs(self, xyz):
-        if not isinstance(xyz, np.ndarray):
-            xyz = np.array(xyz)
+        x, y, z = (np.asarray(c, dtype=float) - c0 for c, c0 in zip(xyz, self.center_of_charge))
+        r, phi, theta = cartesian_to_spherical(x, y, z)
+        return self._contribs_spherical(r, phi, theta, l_max)
 
-        xyz_internal = xyz - self.center_of_charge
-        r, phi, theta = cartesian_to_spherical(*xyz_internal)
-
-        eps = 1.0e-6
-        if isinstance(r, np.ndarray):
-            r[np.abs(r) < eps] = eps
-        else:
-            if abs(r) < eps:
-                r = eps
+    def _contribs_spherical(self, r, phi, theta, l_max):
+        """Contributions of each l <= l_max at points given in internal spherical coordinates."""
+        if self.exterior:
+            r = np.maximum(r, _EPS)
 
         mp_contribs = []
 
-        for l in range(self.l_max + 1):
+        for l in range(l_max + 1):
             phi_l = 0
             for m in range(-l, l + 1):
-                Y_lm = sph_harm(m, l, phi, theta)
+                Y_lm = sph_harm_y(l, m, theta, phi)
                 q_lm = self.multipole_moments[(l, m)]
                 if self.exterior:
                     phi_l += (
@@ -368,7 +372,7 @@ class MultipoleExpansion(object):
                     )
                 else:
                     phi_l += np.sqrt(4 * np.pi / (2 * l + 1)) * q_lm * Y_lm * r**l
-            mp_contribs.append(phi_l.real)
+            mp_contribs.append(np.real(phi_l)[()])
         return mp_contribs
 
     def _calc_multipole_moments(self):
@@ -378,17 +382,19 @@ class MultipoleExpansion(object):
                 moments[(l, m)] = self._calc_multipole_coef(l, m)
         return moments
 
-    def _calc_multipole_coef(self, l, m):  # npqa: E741
+    def _calc_multipole_coef(self, l, m):
 
         prefac = np.sqrt(4 * np.pi / (2 * l + 1))
 
         if self.charge_dist["discrete"]:
             q_lm = 0
             for chg in self.charges:
-                xyz = chg["xyz"] - self.center_of_charge
+                xyz = np.asarray(chg["xyz"]) - self.center_of_charge
                 q = chg["q"]
+                if q == 0:
+                    continue
                 r, phi, theta = cartesian_to_spherical(*xyz)
-                Y_lm = sph_harm(m, l, phi, theta)
+                Y_lm = sph_harm_y(l, m, theta, phi)
                 if self.exterior:
                     q_lm += q * r**l * np.conj(Y_lm)
                 else:
@@ -397,11 +403,13 @@ class MultipoleExpansion(object):
             return q_lm
         else:
             R, Phi, Theta = self.internal_coords_spherical
-            Y_lm = sph_harm(m, l, Phi, Theta)
+            Y_lm = sph_harm_y(l, m, Theta, Phi)
             if self.exterior:
                 integrand = R**l * self.rho * np.conj(Y_lm)
             else:
-                integrand = 1 / R ** (l + 1) * self.rho * np.conj(Y_lm)
+                # rho vanishes where R < _EPS (checked in __init__), so clipping R
+                # avoids 0 * inf = nan without changing the integral
+                integrand = self.rho * np.conj(Y_lm) / np.maximum(R, _EPS) ** (l + 1)
             return self._integrate(integrand) * prefac
 
     def _integrate(self, integrand):
@@ -446,29 +454,13 @@ def cartesian_to_spherical(*coords):
     R = np.sqrt(X**2 + Y**2 + Z**2)
     R_xy = np.sqrt(X**2 + Y**2)
 
-    # the 'where' argument in np.arccos is not working as expected,
-    # so handle invalid points manually and turn off floating point
-    # errors temporarily
-    old_settings = np.geterr()
-    np.seterr(all="ignore")
+    # Z / R is undefined at the origin; those points are replaced afterwards
+    with np.errstate(invalid="ignore", divide="ignore"):
+        Phi = np.where(R_xy == 0, 0.0, np.arctan2(Y, X))
+        Theta = np.where(R == 0, np.pi / 2, np.arccos(Z / R))
 
-    if hasattr(R_xy, "__len__"):
-        Phi = np.arctan2(Y, X)
-        Phi[R_xy == 0] = 0
-        Theta = np.arccos(Z / R)
-        Theta[R == 0] = np.pi / 2
-    else:
-        if R_xy == 0:
-            Phi = 0
-        else:
-            Phi = np.arctan2(Y, X)
-        if R == 0:
-            Theta = np.pi / 2
-        else:
-            Theta = np.arccos(Z / R)
-
-    np.seterr(**old_settings)
-    return R, Phi, Theta
+    # np.where returns 0-d arrays for scalar input; turn them into scalars
+    return R, Phi[()], Theta[()]
 
 
 def spherical_to_cartesian(r, phi, theta):
