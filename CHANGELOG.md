@@ -5,6 +5,8 @@ All notable changes to *multipoles* are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-22
+
 ### Added
 
 - `MultipoleExpansion.field(x, y, z)`: the field E = -∇Φ, computed analytically.
@@ -53,5 +55,6 @@ All notable changes to *multipoles* are documented here. The format is based on
 See the [commit history](https://github.com/maroba/multipoles/commits/master) and the
 [releases](https://github.com/maroba/multipoles/releases).
 
-[Unreleased]: https://github.com/maroba/multipoles/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/maroba/multipoles/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/maroba/multipoles/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/maroba/multipoles/compare/v0.4.1...v0.4.2
