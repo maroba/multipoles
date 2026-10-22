@@ -310,7 +310,10 @@ class TestMultipoleExpansion(unittest.TestCase):
 
         R, Phi, Theta = mpe.internal_coords_spherical
         self.assertAlmostEqual(np.max(R), np.sqrt(3) * 5)
-        self.assertAlmostEqual(np.min(Phi), -np.pi)
+        self.assertTrue(np.all((-np.pi <= Phi) & (Phi <= np.pi)))
+        # Points on the negative x-axis get phi = -pi or +pi, depending on the sign of the
+        # rounding noise in the center of charge, which varies between platforms
+        self.assertAlmostEqual(np.max(np.abs(Phi)), np.pi)
         self.assertAlmostEqual(np.max(Theta), np.pi)
 
     def test_call_respects_l_max(self):
