@@ -5,6 +5,6 @@
         members:
             - __init__
             - __call__
-            - eval
+            - __getitem__
         show_root_heading: true
         show_source: false

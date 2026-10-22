@@ -26,93 +26,71 @@ class MultipoleExpansion(object):
         """Create a MultipoleExpansion object for a given charge or mass distribution.
 
         Args:
-            charge_dist (dict): description of the charge distribution
+            charge_dist (dict): Description of the charge distribution.
 
-               For discrete charge distributions (point charges) the dict MUST contain the
-               following (key:value)-pairs:
+                For discrete charge distributions (point charges) the dict must contain
+                exactly the following items:
 
-                   `'discrete'`:    True
+                - `'discrete'`: `True`
+                - `'charges'`: a list of dicts, one for each point charge, with the items
+                    - `'q'`: the charge (positive or negative number)
+                    - `'xyz'`: the location of the charge in cartesian coordinates
+                      (tuple, list or array of length 3)
 
-                   `'charges'`:     a list of dicts, one for each point charge, with the items
+                For continuous charge distributions (charge density) the dict must contain
+                exactly the following items:
 
-                                    `'q'`: the charge (positive or negative floating point number)
+                - `'discrete'`: `False`
+                - `'rho'`: the charge density on a grid (3D numpy array)
+                - `'xyz'`: the grid, a 3-tuple of 3D coordinate arrays as returned by
+                  `np.meshgrid(x, y, z, indexing='ij')`
 
-                                    `'xyz'`: the location of the charge in cartesian coordinates
-                                    (a tuple, list or array of length 3)
+            l_max (int): The maximum multipole moment to consider
+                (0 = monopole, 1 = dipole, etc.).
+            exterior (bool): Whether to perform an exterior expansion (default).
+                If `False`, the interior expansion is used.
+            interior (bool): Whether to perform an interior expansion. Alternative to
+                `exterior`; only one of both needs to be given.
 
-                For continuous charge distributions (charge density) the dict MUST contain the
-                following items:
+        The expansion is done about the center of charge, which is weighted by the
+        absolute value of the charges.
 
-                   'discrete':    False
-                   'rho':         the 3D charge distribution (3D numpy array)
-                   'xyz':         the domain of the charge distribution
-                                  (3-tuple of 3D coordinate arrays as returned by
-                                  np.meshgrid(..., indexing='ij'), see example below)
+        Raises:
+            InvalidChargeDistributionException: If `charge_dist` is malformed, the total
+                absolute charge is zero, or the grid is invalid.
+            InvalidExpansionException: If `interior` and `exterior` contradict each other,
+                or an interior expansion is requested with charge at the expansion center.
 
-            l_max (int): the maximum multipole moment to consider (0=monopole, 1=dipole, etc.)
-
-            exterior (bool): whether to perform an exterior expansion (default).
-                    If false, interior expansion will be used.
-
-            interior (bool): syntactic override for exterior expansion parameter
-
-        ## Examples
-
-        As example for a discrete charge distribution we model two point charges with
-        positive and negative unit charge located on the z-axis:
-
-            >>> from multipoles import MultipoleExpansion
-
-        Prepare the charge distribution dict for the MultipoleExpansion object:
-
-            >>> charge_dist = {'discrete': True, 'charges': [{'q': 1, 'xyz': (0, 0, 1)}, {'q': -1, 'xyz': (0, 0, -1)}]}
-            >>> l_max = 2
-            >>> Phi = MultipoleExpansion(charge_dist, l_max)
-
-        Then evaluate on any point desired using Phi(...) or Phi[]. See
-        the docstrings of __call__ and __getitem__, respectively.
-
-        As an example for a continuous charge distribution, we smear out the point charges from the previous example:
+        Examples:
+            A discrete charge distribution: two point charges with positive and negative
+            unit charge located on the z-axis:
 
             >>> from multipoles import MultipoleExpansion
+            >>> charge_dist = {
+            ...     'discrete': True,
+            ...     'charges': [
+            ...         {'q': 1, 'xyz': (0, 0, 1)},
+            ...         {'q': -1, 'xyz': (0, 0, -1)},
+            ...     ],
+            ... }
+            >>> Phi = MultipoleExpansion(charge_dist, l_max=2)
+
+            A continuous charge distribution: the same charges, smeared out as gaussians
+            on a cubic grid of edge length 10 centered at the origin:
+
             >>> import numpy as np
-
-        First we set up our grid, a cube of length 10 centered at the origin:
-
-            >>> npoints = 101
-            >>> edge = 10
-            >>> x, y, z = [np.linspace(-edge/2., edge/2., npoints)]*3
+            >>> x, y, z = [np.linspace(-5, 5, 101)] * 3
             >>> XYZ = np.meshgrid(x, y, z, indexing='ij')
-
-        We model our smeared out charges as gaussian functions:
-
             >>> def gaussian(XYZ, xyz0, sigma):
-            >>>    g = np.ones_like(XYZ[0])
-            >>>    for k in range(3):
-            >>>        g *= np.exp(-(XYZ[k] - xyz0[k])**2 / sigma**2)
-            >>>    g *= (sigma**2*np.pi)**-1.5
-            >>>    return g
+            ...     g = np.ones_like(XYZ[0])
+            ...     for k in range(3):
+            ...         g *= np.exp(-(XYZ[k] - xyz0[k])**2 / sigma**2)
+            ...     return g * (sigma**2 * np.pi)**-1.5
+            >>> rho = gaussian(XYZ, (0, 0, 1), 1.5) - gaussian(XYZ, (0, 0, -1), 1.5)
+            >>> Phi = MultipoleExpansion({'discrete': False, 'rho': rho, 'xyz': XYZ}, l_max=2)
 
-        The width of our gaussians:
-
-            >>> sigma = 1.5
-
-        Initialize the charge density rho, which is a 3D numpy array:
-
-            >>> rho = gaussian(XYZ, (0, 0, 1), sigma) - gaussian(XYZ, (0, 0, -1), sigma)
-
-        Prepare the charge distribution dict for the MultipoleExpansion object:
-
-            >>> charge_dist = {'discrete': False, 'rho': rho, 'xyz': XYZ}
-
-        The rest is the same as for the discrete case:
-
-            >>> l_max = 2
-            >>> Phi = MultipoleExpansion(charge_dist, l_max)
-
-        Then evaluate on any point desired using Phi(...) or Phi[]. See
-        the docstrings of __call__ and __getitem__, respectively.
-
+            Evaluate the expansion at arbitrary points with `Phi(x, y, z)`, or on the
+            grid points of a continuous distribution with `Phi[...]`.
         """
 
         self.charge_dist = charge_dist
@@ -225,76 +203,65 @@ class MultipoleExpansion(object):
         self.multipole_moments = self._calc_multipole_moments()
 
     def __call__(self, *xyz, l_max=None):
-        """Evaluate multipole expansion at a point with given coordinates.
+        """Evaluate the multipole expansion at points with given coordinates.
 
         Args:
-            xyz (3-tuple of floats|array): The x,y,z coordinates of the points where to evaluate the expansion.
-                If three floats are given, then only one point with coordinates (x, y, z)
-                is evaluated. If three arrays xyz=(x, y, z) are given, the evaluation is done at each
-                point (x[i], y[i], z[i]). Arrays may have any shape (numbers and arrays are
-                broadcast against each other); the result has the broadcast shape.
+            *xyz (float | array_like): The x, y, z coordinates of the points where to
+                evaluate the expansion. If three numbers are given, the expansion is
+                evaluated at the single point (x, y, z). If arrays are given, it is
+                evaluated at each point (x[i], y[i], z[i]). Arrays may have any shape;
+                numbers and arrays are broadcast against each other.
+            l_max (int, optional): Only use contributions up to this angular momentum.
+                Defaults to the `l_max` the expansion was created with, and must not
+                exceed it.
 
-            l_max (int, optional): The maximum angular momentum to use for the expansion.
-                If no value is given, use l_max from the original computation of the expansion.
-                If l_max is given, only use contributions up to this angular momentum
-                in the evaluation.
+        Returns:
+            float | numpy.ndarray: The value of the potential: a float for a single point,
+                otherwise an array of the broadcast shape of the coordinates.
+
+        Examples:
+            >>> Phi(30.5, 30.6, 30.7)
+            >>> Phi(30.5, 30.6, 30.7, l_max=1)  # monopole and dipole only
+            >>> Phi(np.linspace(10, 20, 5), 0, 0)  # 5 points on the x-axis
         """
 
         return self._eval(xyz, l_max)
 
     def __getitem__(self, key):
-        """
-        Evaluate multipole expansion on grid points specified by mask
-        or slices.
+        """Evaluate the multipole expansion on grid points of the charge distribution.
 
-        Parameters
-        ----------
-        key: index expression (e.g. three slices) or boolean mask array
-            Defines on which points of the grid of the (continuous) charge
-            distribution to evaluate the multipole expansion.
+        Only available for continuous charge distributions.
 
-        Returns
-        -------
-        Array of shape defined by `key` with the values evaluated from
-        the multipole expansion.
+        Args:
+            key (index expression | array_like): Slices, indices or a boolean mask
+                selecting the points of the grid `charge_dist['xyz']` at which to
+                evaluate the expansion.
 
-        Examples
-        --------
+        Returns:
+            numpy.ndarray: The values of the multipole expansion, in the shape defined
+                by `key`.
 
-        >>> # Define a grid 51x51x51 and a gaussian charge distribution
-        >>> x, y, z = [np.linspace(-5, 5, 51)] * 3
-        >>> X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
-        >>> sigma = 1.5
-        >>> rho = gaussian((X, Y, Z), (0, 0, 0), sigma)
-        >>> mpe = MultipoleExpansion(charge_dist={'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3)
+        Raises:
+            TypeError: If the charge distribution is discrete.
 
-        With the multipole expansion thus defined, we can evaluate using slices
-        or masks.
+        Examples:
+            >>> x, y, z = [np.linspace(-5, 5, 51)] * 3
+            >>> X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+            >>> rho = gaussian((X, Y, Z), (0, 0, 0), 1.5)
+            >>> mpe = MultipoleExpansion({'discrete': False, 'rho': rho, 'xyz': (X, Y, Z)}, l_max=3)
 
-        1. Evaluating with slices
+            Evaluate on the whole grid (a 51x51x51 array) or on the plane `z = -5`
+            (a 51x51 array):
 
-        >>> actual = mpe[:, :, :]
+            >>> mpe[:, :, :]
+            >>> mpe[:, :, 0]
 
-        `actual` is now a 51x51x51 array with values filled by evaluating
-        the multipole expansion on X, Y, Z.
+            Evaluate only on the boundary of the grid, using a boolean mask:
 
-        >>> actual = mpe[:, :, 0]
-
-        `actual is now a 51x51 array with values filled by evaluating at
-        X[:, :, 0], Y[:, :, 0], Z[:, :, 0]
-
-        2. Evaluating with masks
-
-        Define a boolean mask for the boundary:
-
-        >>> mask = np.ones_like(rho, dtype=bool)
-        >>> mask[1:-1, 1:-1, 1:-1] = False
-
-        Define an empty array and evaluate only multipole expansion only
-        at the boundary:
-
-        >>> actual = np.zeros_like(rho)
-        >>> actual[mask] = mpe[mask]
+            >>> mask = np.ones_like(rho, dtype=bool)
+            >>> mask[1:-1, 1:-1, 1:-1] = False
+            >>> boundary_values = np.zeros_like(rho)
+            >>> boundary_values[mask] = mpe[mask]
         """
         if self.charge_dist["discrete"]:
             raise TypeError(

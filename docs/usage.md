@@ -87,3 +87,64 @@ Phi = MultipoleExpansion(charge_dist, l_max)
 x, y, z = 30.5, 30.6, 30.7
 value = Phi(x, y, z)
 ```
+## Evaluating the Expansion
+
+`Phi(x, y, z)` accepts numbers as well as arrays of any shape. Numbers and arrays are broadcast
+against each other, and the result has the broadcast shape:
+
+```python
+import numpy as np
+
+Phi(30.5, 30.6, 30.7)                  # a single point
+
+x = np.linspace(10, 20, 5)
+Phi(x, 0, 0)                           # 5 points on the x-axis
+
+X, Y = np.meshgrid(x, x, indexing='ij')
+Phi(X, Y, 30)                          # a 5x5 array on the plane z=30
+```
+
+With `l_max` you can restrict the evaluation to the lower multipoles, e.g. to see how much each
+order contributes. It must not exceed the `l_max` the expansion was created with:
+
+```python
+Phi(30.5, 30.6, 30.7, l_max=0)         # monopole only
+Phi(30.5, 30.6, 30.7, l_max=1)         # monopole + dipole
+```
+
+For continuous charge distributions you can also evaluate directly on the grid of the charge
+density, using slices, indices or boolean masks:
+
+```python
+Phi[:, :, :]                           # the whole grid, same shape as rho
+Phi[:, :, 0]                           # the plane z = -5
+
+mask = np.ones_like(rho, dtype=bool)   # only the boundary of the grid,
+mask[1:-1, 1:-1, 1:-1] = False         # e.g. as boundary condition for
+boundary = np.zeros_like(rho)          # a Poisson solver
+boundary[mask] = Phi[mask]
+```
+
+## Interior Expansion
+
+By default, *multipoles* computes the exterior expansion, which is valid *outside* of the charge
+distribution. For the potential *inside* a region free of charge, surrounded by the charges, use
+the interior expansion:
+
+```python
+charge_dist = {
+    'discrete': True,
+    'charges': [
+        {'q': 1, 'xyz': (4, 0, 0)},
+        {'q': 1, 'xyz': (-4, 0, 0)},
+        {'q': 1, 'xyz': (0, 4, 0)},
+        {'q': 1, 'xyz': (0, -4, 0)},
+    ]
+}
+
+Phi = MultipoleExpansion(charge_dist, l_max=3, interior=True)   # or exterior=False
+Phi(0, 0, 0)   # = 4 * 1/4 = 1
+```
+
+Both expansions are done about the center of charge (weighted by the absolute values of the
+charges). For the interior expansion, there must be no charge at this center.

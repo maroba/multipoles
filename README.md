@@ -1,7 +1,7 @@
 # multipoles
 
 <p><a href="https://badge.fury.io/py/multipoles"> <img src="https://badge.fury.io/py/multipoles.svg?branch=kill_cache=1" alt="PyPI version"></a> 
-<a href=""> <img src="https://github.com/maroba/multipoles/actions/workflows/python-app.yml/badge.svg" alt="build"></a>
+<a href="https://github.com/maroba/multipoles/actions/workflows/python-app.yml"> <img src="https://github.com/maroba/multipoles/actions/workflows/python-app.yml/badge.svg" alt="build"></a>
 <a href="https://codecov.io/gh/maroba/multipoles"> <img src="https://codecov.io/gh/maroba/multipoles/branch/master/graph/badge.svg?token=JNH9SP7BRG" alt=""></a>
 </p>
 
@@ -29,16 +29,14 @@ $$\Phi(x,y,z)=\int d^3r'\frac{\rho(r')}{|r-r'|}$$
 
 Examples of this are the electrostatic and Newtonian gravitational potential.
 If you need to evaluate $\Phi(x,y,z)$ at many points, calculating the integral for each point is computationally
-expensive. As a faster alternative, we can express $\Phi(x,y,z)$ in terms of the multipole moments $q_{lm}$ or $I_
-{lm}$ (note some literature uses the subscripts $(\cdot)_{nm}$):
+expensive. As a faster alternative, we can express $\Phi(x,y,z)$ in terms of the multipole moments $q_{lm}$ or
+$I_{lm}$ (note some literature uses the subscripts $(\cdot)_{nm}$):
 
-$$\Phi(x,y,z)=\sum_{l=0}^\infty\underbrace{\sqrt{\frac{4\pi}{2l+1}}\sum_{m=-l}^lY_{lm}(\theta, \varphi)\frac{q_
-{lm}}{r^{l+1}}}_{\Phi^{(l)}}$$
+$$\Phi(x,y,z)=\sum_{l=0}^\infty\underbrace{\sqrt{\frac{4\pi}{2l+1}}\sum_{m=-l}^lY_{lm}(\theta, \varphi)\frac{q_{lm}}{r^{l+1}}}_{\Phi^{(l)}}$$
 
-for a exterior expansion, or
+for an exterior expansion, or
 
-$$\Phi(x,y,z)=\sum_{l=0}^\infty\underbrace{\sqrt{\frac{4\pi}{2l+1}}\sum_{m=-l}^lY_{lm}(\theta, \varphi)I_{lm}r^{l}}_
-{\Phi^{(l)}}$$
+$$\Phi(x,y,z)=\sum_{l=0}^\infty\underbrace{\sqrt{\frac{4\pi}{2l+1}}\sum_{m=-l}^lY_{lm}(\theta, \varphi)I_{lm}r^{l}}_{\Phi^{(l)}}$$
 
 for an interior expansion; where $r, \theta, \varphi$ are the usual spherical coordinates corresponding to the cartesian
 coordinates $x, y, z$ and $Y_{lm}(\theta, \varphi)$ are the spherical harmonics.
@@ -51,8 +49,8 @@ and the multipole moments for the interior expansion are:
 
 $$I_{lm} = \sqrt{\frac{4\pi}{2l+1}}\int d^3 r' \frac{\rho(r')}{r'^{l+1}} Y^*_{lm}(\theta', \varphi')$$
 
-This approach is usually much faster because the contributions $\Phi^{(l)}$ are getting smaller with increasing <i>
-l</i>. So we just have to calculate a few integrals for obtaining some $q_{lm}$ or $I_{lm}$.
+This approach is usually much faster because the contributions $\Phi^{(l)}$ are getting smaller with increasing
+$l$. So we just have to calculate a few integrals for obtaining some $q_{lm}$ or $I_{lm}$.
 
 Some literature considers the $\sqrt{\frac{4\pi}{2l+1}}$ as part of the definition of $Y_{lm}(\theta, \varphi)$.
 
