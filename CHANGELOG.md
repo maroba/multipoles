@@ -5,6 +5,8 @@ All notable changes to *multipoles* are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-16
+
 ### Added
 
 - `MultipoleExpansion.from_charges(q, xyz, l_max)` and `MultipoleExpansion.from_density(rho, (x, y, z), l_max)`:
@@ -99,6 +101,7 @@ All notable changes to *multipoles* are documented here. The format is based on
 See the [commit history](https://github.com/maroba/multipoles/commits/master) and the
 [releases](https://github.com/maroba/multipoles/releases).
 
-[Unreleased]: https://github.com/maroba/multipoles/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/maroba/multipoles/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/maroba/multipoles/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/maroba/multipoles/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/maroba/multipoles/compare/v0.4.1...v0.4.2
