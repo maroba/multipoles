@@ -1,7 +1,12 @@
+import os
+
 import numpy as np
 import pytest
 
 from multipoles import MultipoleExpansion
+
+# Plot without a display, also on macOS and Windows
+os.environ.setdefault("MPLBACKEND", "Agg")
 
 
 def gaussian(XYZ, xyz0, sigma):

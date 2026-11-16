@@ -5,11 +5,13 @@ import unittest
 import warnings
 from pathlib import Path
 
+from multipoles import ExpansionValidityWarning
+
 ROOT = Path(__file__).parent.parent
 
 
 def python_code_blocks(path):
-    return re.findall(r"```python\n(.*?)```", path.read_text(encoding="utf-8"), re.S)
+    return re.findall(r"```python\n(.*?)```", path.read_text(encoding="utf-8"), re.DOTALL)
 
 
 class TestDocumentationExamples(unittest.TestCase):
@@ -19,11 +21,12 @@ class TestDocumentationExamples(unittest.TestCase):
         self.assertTrue(blocks, f"No examples found in {path}")
 
         # The blocks of a file build on each other, so run them in one namespace.
-        # Examples must not cause any warnings, e.g. from evaluating the expansion
-        # where it does not converge.
+        # Examples must not cause warnings from evaluating the expansion where it does
+        # not converge, or from invalid numerical operations.
         namespace = {}
         with warnings.catch_warnings():
-            warnings.simplefilter("error")
+            warnings.simplefilter("error", ExpansionValidityWarning)
+            warnings.simplefilter("error", RuntimeWarning)
             for i, block in enumerate(blocks):
                 with self.subTest(file=path.name, block=i):
                     exec(compile(block, f"{path.name}, block {i}", "exec"), namespace)

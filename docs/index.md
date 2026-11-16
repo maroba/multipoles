@@ -13,14 +13,16 @@ anywhere outside (or, for the interior expansion, inside) the distribution.
 pip install --upgrade multipoles
 ```
 
+*multipoles* only needs NumPy. For plotting, install it with `pip install multipoles[plot]`.
+
 --8<-- "README.md:quickstart"
 
 --8<-- "README.md:units"
 
 ## Where to go next
 
-- [Usage](usage.md): continuous charge distributions, evaluation on grids, the field, the multipole
-  moments, the interior expansion, gravity
+- [Usage](usage.md): charge densities, evaluation on grids, the field and the Hessian, accuracy control,
+  the interior expansion, the multipole moments, combining, saving and plotting expansions, units and gravity
 - [Theory](theory.md): the formulas behind the expansion, where it converges and how accurate it is
 - [Accuracy](accuracy.ipynb): a worked comparison with exact solutions
 - [API Reference](reference.md)

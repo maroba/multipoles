@@ -4,4 +4,5 @@ mkdocs-jupyter
 mkdocstrings[python]
 pymdown-extensions
 matplotlib
+scipy
 ipykernel

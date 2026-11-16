@@ -5,6 +5,50 @@ All notable changes to *multipoles* are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- `MultipoleExpansion.from_charges(q, xyz, l_max)` and `MultipoleExpansion.from_density(rho, (x, y, z), l_max)`:
+  create expansions from arrays instead of dicts. For many point charges, this is also much faster.
+- Charge densities on unevenly spaced grids, and grids given by their 1D axes or by sparse meshgrids.
+- Points can be given as one array of shape `(..., 3)` everywhere instead of the coordinates `x, y, z`.
+- `hessian(x, y, z)`: the second derivatives of the potential, computed analytically.
+- `evaluate(x, y, z, field=True, hessian=False)`: potential and derivatives at once, faster than separately.
+- `contributions(x, y, z)`: the contribution of each order l to the potential.
+- `field_on_grid(key)` and `boundary_values(width=1)`: the field on the grid, and the potential on the boundary of
+  the grid, e.g. as boundary condition for Poisson solvers.
+- `prefactor` argument: `'SI'` for electrostatics in SI units, `'gravity'` for the gravitational potential, or any
+  number. The constants `EPSILON_0` and `GRAVITATIONAL_CONSTANT`.
+- `error_bound(x, y, z)`: an upper bound of the truncation error, and `l_max='auto'` with `tol` and `radius`
+  to choose the smallest `l_max` for a given accuracy.
+- `cartesian_moment(l)`: cartesian moments of any order, e.g. the octupole moment.
+- `moments(normalization, real)`: the moments for orthonormal or real spherical harmonics, and
+  `power_spectrum()`: the rotation-invariant strength of each order.
+- `shifted(center)`: the same expansion about another center. Expansions can be added, subtracted and multiplied
+  by numbers.
+- `from_moments(moments, center)`: create an expansion from known moments. `save`/`load` and
+  `to_dict`/`from_dict` to store expansions.
+- `energy(q, xyz)`: the energy of point charges in the potential of the expansion.
+- `plot_slice()`: plot the potential and the field lines on a plane, with the new extra `multipoles[plot]`.
+- `py.typed`, so that type checkers use the type hints.
+
+### Changed
+
+- Requires Python >= 3.10 and NumPy >= 1.22, and no longer SciPy.
+- Evaluating the expansion and computing the moments is about twice as fast. The moments of large grids are
+  computed in chunks, which needs much less memory for large `l_max`.
+- The center of charge of continuous distributions weights the grid points by their cell volume.
+- `dxyz` and `dvol` are `None` for unevenly spaced grids.
+- Expansions created with `from_charges`, `from_density` or `from_moments` have `charge_dist = None`.
+
+### Fixed
+
+- Grids with uneven spacing were integrated with the spacing of the first cell, which gave wrong moments without
+  any warning. Coordinate arrays that don't form a rectilinear grid now raise an error.
+- The potential lost accuracy close to the z-axis (relative error up to about 1e-11), because the polar angle
+  was computed with `arccos`.
+- `l_max=2.0` failed with a `TypeError`, and an invalid `l_max` in calls gave a cryptic error.
+- Clear errors for an empty list of charges, and for points of the wrong shape.
+
 ## [0.5.0] - 2026-10-22
 
 ### Added
