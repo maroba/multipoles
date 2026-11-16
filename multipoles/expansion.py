@@ -298,7 +298,15 @@ class MultipoleExpansion:
             xyz (array_like): The positions of the charges, an array of shape (N, 3).
             l_max (int | str): The maximum multipole moment, or `'auto'`, as for the
                 constructor.
-            exterior, interior, center, prefactor, tol, radius: As for the constructor.
+            exterior (bool, optional): Whether to perform an exterior expansion (default).
+            interior (bool, optional): Whether to perform an interior expansion.
+            center (array_like, optional): The expansion center. Defaults to the center of charge.
+            prefactor (float | str): The constant the potential is multiplied with, e.g. `'SI'`
+                or `'gravity'`, as for the constructor.
+            tol (float, optional): Only for `l_max='auto'`: the relative tolerance, as for the
+                constructor.
+            radius (float, optional): Only for `l_max='auto'`: the distance from the center
+                where the tolerance must hold, as for the constructor.
 
         Returns:
             MultipoleExpansion: The expansion.
@@ -356,8 +364,17 @@ class MultipoleExpansion:
                 `np.meshgrid(x, y, z, indexing='ij')`.
             l_max (int | str): The maximum multipole moment, or `'auto'`, as for the
                 constructor.
-            exterior, interior, center, charge_tol, prefactor, tol, radius: As for the
+            exterior (bool, optional): Whether to perform an exterior expansion (default).
+            interior (bool, optional): Whether to perform an interior expansion.
+            center (array_like, optional): The expansion center. Defaults to the center of charge.
+            charge_tol (float): Fraction of the absolute charge that may be neglected for
+                `validity_radius`, as for the constructor.
+            prefactor (float | str): The constant the potential is multiplied with, e.g. `'SI'`
+                or `'gravity'`, as for the constructor.
+            tol (float, optional): Only for `l_max='auto'`: the relative tolerance, as for the
                 constructor.
+            radius (float, optional): Only for `l_max='auto'`: the distance from the center
+                where the tolerance must hold, as for the constructor.
 
         Returns:
             MultipoleExpansion: The expansion.
@@ -406,7 +423,8 @@ class MultipoleExpansion:
                 Missing moments are zero. They must describe a real potential, i.e.
                 q_l,-m = (-1)^m conj(q_lm).
             center (array_like): The expansion center.
-            exterior, interior: The kind of expansion, as for the constructor.
+            exterior (bool, optional): Whether to perform an exterior expansion (default).
+            interior (bool, optional): Whether to perform an interior expansion.
             prefactor (float | str): As for the constructor.
             validity_radius (float, optional): The radius of the sphere about the center
                 outside (exterior) or inside (interior) of which the expansion converges.
@@ -980,7 +998,7 @@ class MultipoleExpansion:
             field (bool): Whether to draw field lines on top.
             ax (matplotlib.axes.Axes, optional): Where to plot. Defaults to the current axes.
             l_max (int, optional): Only use contributions up to this angular momentum.
-            **kwargs: Passed on to `ax.pcolormesh`.
+            **kwargs (Any): Passed on to `ax.pcolormesh`.
 
         Returns:
             matplotlib.axes.Axes: The axes.
