@@ -1,7 +1,3 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath('..'))
 import unittest
 import warnings
 
@@ -10,8 +6,11 @@ import numpy.testing as npt
 from scipy.special import erf
 
 from multipoles.expansion import (
-    MultipoleExpansion, InvalidChargeDistributionException, InvalidExpansionException,
-    ExpansionValidityWarning, cartesian_to_spherical
+    ExpansionValidityWarning,
+    InvalidChargeDistributionException,
+    InvalidExpansionException,
+    MultipoleExpansion,
+    cartesian_to_spherical,
 )
 
 
@@ -27,7 +26,7 @@ class TestMultipoleExpansion(unittest.TestCase):
         self.assertAlmostEqual(1, mpe.total_charge, places=4)
         np.testing.assert_array_almost_equal(mpe.center_of_charge, (0, 0, 0))
 
-        self.assertAlmostEqual(0.1, mpe._multipole_contribs((10, 0, 0))[0], places=4)
+        self.assertAlmostEqual(0.1, mpe.contributions(10, 0, 0)[0], places=4)
 
         R = np.sqrt(X ** 2 + Y ** 2 + Z ** 2)
         b = np.ones_like(R, dtype=bool)
@@ -97,10 +96,10 @@ class TestMultipoleExpansion(unittest.TestCase):
         # dipole term for point charges obtained from hand calculation: q1,-1 = -sqrt(2), q10 = 0
         #  ==> phi_1(10e_x) = 0.02, but octupole also contributes to total phi!
 
-        phi_l = mpe._multipole_contribs((10, 0, 0))
+        phi_l = mpe.contributions(10, 0, 0)
         np.testing.assert_array_almost_equal((0, 0.02, 0, 0), phi_l, decimal=3)
 
-        self.assertAlmostEqual(mpe._eval((10, 0, 0), 3), 1 / 9. - 1 / 11., places=3)
+        self.assertAlmostEqual(mpe(10, 0, 0, l_max=3), 1 / 9. - 1 / 11., places=3)
         self.assertAlmostEqual(mpe(10, 0, 0), 1 / 9. - 1 / 11., places=3)
 
     def test_dipole_of_point_charges(self):
@@ -112,7 +111,7 @@ class TestMultipoleExpansion(unittest.TestCase):
             ]
         }, l_max=3)
 
-        np.testing.assert_array_almost_equal((0, 0.02, 0, 0), mpe._multipole_contribs((10, 0, 0)), decimal=3)
+        np.testing.assert_array_almost_equal((0, 0.02, 0, 0), mpe.contributions(10, 0, 0), decimal=3)
 
     def test_surrounding_point_charges(self):
         mpe = MultipoleExpansion({
@@ -152,8 +151,8 @@ class TestMultipoleExpansion(unittest.TestCase):
         mpe_interior = MultipoleExpansion(charges, l_max=3, interior=True)
         mpe_not_exterior = MultipoleExpansion(charges, l_max=3, exterior=False)
 
-        np.testing.assert_array_almost_equal(mpe_interior._multipole_contribs((0, 1, 1)),
-                                             mpe_not_exterior._multipole_contribs((0, 1, 1)), decimal=10)
+        np.testing.assert_array_almost_equal(mpe_interior.contributions(0, 1, 1),
+                                             mpe_not_exterior.contributions(0, 1, 1), decimal=10)
 
     def test_explicit_exterior_expansion_call(self):
         charges = {
@@ -166,8 +165,8 @@ class TestMultipoleExpansion(unittest.TestCase):
         mpe_exterior = MultipoleExpansion(charges, l_max=3, exterior=True)
         mpe_not_interior = MultipoleExpansion(charges, l_max=3, interior=False)
 
-        np.testing.assert_array_almost_equal(mpe_exterior._multipole_contribs((10, 0, 0)),
-                                             mpe_not_interior._multipole_contribs((10, 0, 0)), decimal=10)
+        np.testing.assert_array_almost_equal(mpe_exterior.contributions(10, 0, 0),
+                                             mpe_not_interior.contributions(10, 0, 0), decimal=10)
 
     def test_expansion_type_is_exclusive(self):
         self.assertRaises(InvalidExpansionException, lambda:
@@ -321,7 +320,7 @@ class TestMultipoleExpansion(unittest.TestCase):
 
         # total charge is zero, so the monopole contribution vanishes
         self.assertAlmostEqual(0, mpe(0, 0, 5, l_max=0))
-        self.assertAlmostEqual(sum(mpe._multipole_contribs((0, 0, 5))[:2]), mpe(0, 0, 5, l_max=1))
+        self.assertAlmostEqual(sum(mpe.contributions(0, 0, 5)[:2]), mpe(0, 0, 5, l_max=1))
         self.assertRaises(ValueError, lambda: mpe(0, 0, 5, l_max=4))
 
     def test_exterior_false_means_interior(self):
@@ -428,7 +427,8 @@ class TestValidity(unittest.TestCase):
 
     def test_validity_radius_discrete(self):
         charges = {'discrete': True, 'charges': [
-            {'q': 1, 'xyz': (0, 0, 2)}, {'q': 1, 'xyz': (0, 0, -2)}, {'q': 1, 'xyz': (3, 0, 0)}, {'q': 0, 'xyz': (9, 0, 0)},
+            {'q': 1, 'xyz': (0, 0, 2)}, {'q': 1, 'xyz': (0, 0, -2)},
+            {'q': 1, 'xyz': (3, 0, 0)}, {'q': 0, 'xyz': (9, 0, 0)},
         ]}
         self.assertAlmostEqual(3, MultipoleExpansion(charges, 2, center=(0, 0, 0)).validity_radius)
         self.assertAlmostEqual(2, MultipoleExpansion(charges, 2, center=(0, 0, 0), interior=True).validity_radius)
@@ -512,7 +512,8 @@ class TestCenter(unittest.TestCase):
 
     def test_invalid_center_raises(self):
         for center in [(0, 0), (0, 0, np.nan), 'origin']:
-            self.assertRaises(ValueError, lambda: MultipoleExpansion(DIPOLE_Z, 2, center=center))
+            with self.assertRaises(ValueError):
+                MultipoleExpansion(DIPOLE_Z, 2, center=center)
 
 
 class TestField(unittest.TestCase):
@@ -682,7 +683,8 @@ class TestMomentsAndApi(unittest.TestCase):
         X, Y, Z = grid(-5, 5, 11)
         mpe = MultipoleExpansion({'discrete': False, 'rho': gaussian((X, Y, Z), (0, 0, 0), 1), 'xyz': (X, Y, Z)}, 2,
                                  interior=True, center=(9, 0, 0))
-        self.assertEqual("MultipoleExpansion(charge density on 11x11x11 grid, l_max=2, interior, center=[9.0, 0.0, 0.0])",
+        self.assertEqual("MultipoleExpansion(charge density on 11x11x11 grid, l_max=2, interior, "
+                         "center=[9.0, 0.0, 0.0])",
                          repr(mpe))
 
     def test_pickle(self):

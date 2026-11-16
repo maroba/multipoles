@@ -51,4 +51,13 @@ include = ["multipoles"]
 version = { attr = "multipoles.__version__" }
 
 [tool.ruff]
-lint.ignore = ["E741"] # suppress warning for l, m being ambiguous names, because here they are not!
+line-length = 120
+target-version = "py310"
+extend-exclude = ["docs/*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+    "E741",  # l, m are the usual names of the angular momentum quantum numbers
+    "B905",  # zip() without strict=, the arrays have matching lengths by construction
+]
