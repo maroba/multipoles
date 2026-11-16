@@ -187,9 +187,10 @@ class TestFromDensity:
 class TestSimpsonWeights:
     @pytest.mark.parametrize("n", range(2, 12))
     def test_match_scipy(self, n):
-        scipy_integrate = pytest.importorskip("scipy.integrate")
-        if not hasattr(scipy_integrate, "simpson"):
-            pytest.skip("SciPy too old")
+        scipy = pytest.importorskip("scipy")
+        if tuple(int(v) for v in scipy.__version__.split(".")[:2]) < (1, 11):
+            pytest.skip("SciPy < 1.11 integrates an even number of points differently")
+        import scipy.integrate as scipy_integrate
         rng = np.random.default_rng(n)
         f = rng.normal(size=n)
         for x in (np.linspace(0, 3, n), np.cumsum(rng.random(n) + 0.1)):

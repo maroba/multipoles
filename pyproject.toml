@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -12,40 +12,48 @@ maintainers = [
 ]
 description = "A Python package for multipole expansions of electrostatic or gravitational potentials"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
-    "numpy",
-    "scipy",
+    "numpy>=1.22",
 ]
 dynamic = ["version"]
 
-requires-python = ">=3.9"
-keywords=['multipole expansion',  'physics', 'scientific-computing']
+requires-python = ">=3.10"
+keywords = ["multipole expansion", "physics", "electrostatics", "gravity", "poisson equation", "scientific-computing"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Scientific/Engineering :: Mathematics",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Typing :: Typed",
 ]
 
-
+[project.optional-dependencies]
+plot = ["matplotlib"]
+test = ["pytest", "pytest-cov", "scipy", "hypothesis", "matplotlib"]
+dev = ["multipoles[test]", "ruff"]
 
 [project.urls]
 Homepage = "https://github.com/maroba/multipoles"
 Documentation = "https://maroba.github.io/multipoles/"
 Changelog = "https://github.com/maroba/multipoles/blob/master/CHANGELOG.md"
-source = "https://github.com/maroba/multipoles"
+Source = "https://github.com/maroba/multipoles"
 Issues = "https://github.com/maroba/multipoles/issues"
-tracker = "https://github.com/maroba/multipoles/issues"
 
 [tool.setuptools.packages.find]
 include = ["multipoles"]
+
+[tool.setuptools.package-data]
+multipoles = ["py.typed"]
 
 [tool.setuptools.dynamic]
 version = { attr = "multipoles.__version__" }

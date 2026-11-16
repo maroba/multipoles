@@ -1,0 +1,52 @@
+name: Publish to PyPI
+
+# Publishes the package when a version tag like v0.6.0 is pushed. Uses PyPI's trusted
+# publishing, so no API token is needed. Set it up once on PyPI under
+# "Your projects > multipoles > Publishing" with this repository, the workflow file
+# name publish.yml and the environment name pypi.
+
+on:
+  push:
+    tags: [ "v*" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Check that the tag matches the version
+        run: |
+          version=$(python -c "import re; print(re.search(r'__version__ = \"(.*)\"', open('multipoles/__init__.py').read()).group(1))")
+          if [ "v$version" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match the package version $version"
+            exit 1
+          fi
+      - name: Build the package
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          twine check --strict dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

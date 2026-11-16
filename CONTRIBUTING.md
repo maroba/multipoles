@@ -32,13 +32,14 @@ the documentation:
 ```
 git clone https://github.com/maroba/multipoles.git
 cd multipoles
-python -m pip install -e . pytest ruff -r docs/requirements.txt
+python -m pip install -e ".[dev]" -r docs/requirements.txt
 ```
 
 Before you open a pull request, please make sure that
 
 * **the tests pass**: `pytest`. This also runs the examples in the docstrings, the README and the usage
-  guide, so if you change an example, check that it still runs.
+  guide, so if you change an example, check that it still runs. `pytest --cov=multipoles` shows the test
+  coverage.
 * **the code is clean**: `ruff check .`
 * **the documentation builds without warnings**: `mkdocs build --strict`. This also runs the notebooks in
   `docs/`. Use `mkdocs serve` to preview the documentation at http://127.0.0.1:8000.
