@@ -1,0 +1,1288 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Multipole expansions of electrostatic and gravitational potentials in Python">
+      
+      
+      
+        <link rel="canonical" href="https://maroba.github.io/multipoles/usage/">
+      
+      
+      
+        <link rel="prev" href="./..">
+      
+      
+        <link rel="next" href="../theory/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.1.1">
+    
+    
+      
+        <title>Usage - multipoles</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.ebb7f775.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.b60ce83d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="multipoles" class="md-header__button md-logo" aria-label="multipoles" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            multipoles
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Usage
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/maroba/multipoles" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    maroba/multipoles
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="multipoles" class="md-nav__button md-logo" aria-label="multipoles" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    multipoles
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/maroba/multipoles" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    maroba/multipoles
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Usage
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Usage
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Installation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#point-charges" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Point Charges
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#charge-densities" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Charge Densities
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Charge Densities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-dict-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Dict Interface
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-the-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Evaluating the Expansion
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-field-and-the-hessian" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Field and the Hessian
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-on-the-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Evaluating on the Grid
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-expansion-is-valid" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where the Expansion is Valid
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accuracy-and-the-choice-of-l_max" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Accuracy and the Choice of l_max
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interior-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Interior Expansion
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-expansion-center" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Expansion Center
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multipole-moments" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Multipole Moments
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combining-expansions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Combining Expansions
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moments-from-elsewhere-saving-and-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Moments from Elsewhere, Saving and Loading
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#energy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Energy
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plotting" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Plotting
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#units-and-gravity" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Units and Gravity
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accuracy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accuracy
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API Reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Changelog
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Installation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#point-charges" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Point Charges
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#charge-densities" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Charge Densities
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Charge Densities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-dict-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Dict Interface
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-the-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Evaluating the Expansion
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-field-and-the-hessian" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Field and the Hessian
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-on-the-grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Evaluating on the Grid
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-expansion-is-valid" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where the Expansion is Valid
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accuracy-and-the-choice-of-l_max" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Accuracy and the Choice of l_max
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interior-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Interior Expansion
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-expansion-center" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Expansion Center
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multipole-moments" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Multipole Moments
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combining-expansions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Combining Expansions
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moments-from-elsewhere-saving-and-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Moments from Elsewhere, Saving and Loading
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#energy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Energy
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plotting" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Plotting
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#units-and-gravity" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Units and Gravity
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+  
+  
+
+
+<h1 id="usage">Usage</h1>
+<h2 id="installation">Installation</h2>
+<p>Simply use pip:</p>
+<div class="highlight"><pre><span></span><code>pip install --upgrade multipoles
+</code></pre></div>
+<p><em>multipoles</em> only needs NumPy. To plot expansions, install matplotlib, too, e.g. with
+<code>pip install multipoles[plot]</code>.</p>
+<h2 id="point-charges">Point Charges</h2>
+<p>As example for a discrete charge distribution we model two point charges with positive and negative unit
+charge located on the z-axis:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">multipoles</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultipoleExpansion</span>
+
+<span class="n">q</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>                      <span class="c1"># the charges</span>
+<span class="n">xyz</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span>    <span class="c1"># their positions, an array of shape (N, 3)</span>
+
+<span class="n">l_max</span> <span class="o">=</span> <span class="mi">2</span>   <span class="c1"># where to stop the infinite multipole sum; here we expand up to the quadrupole (l=2)</span>
+
+<span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">l_max</span><span class="p">)</span>
+
+<span class="c1"># We can evaluate the multipole expanded potential at a given point like this:</span>
+
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">Phi</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+<span class="c1"># The multipole moments are stored in a dict, where the keys are (l, m) and the values q_lm:</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">multipole_moments</span>
+</code></pre></div>
+<p>For N equal charges, e.g. equal masses, <code>q</code> may also be a single number.</p>
+<h2 id="charge-densities">Charge Densities</h2>
+<p>As an example for a continuous charge distribution, we smear out the point charges from the previous
+example. The charge density is given on a grid, described by its axes <code>x</code>, <code>y</code>, <code>z</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># First we set up our grid, a cube of length 16 centered at the origin:</span>
+
+<span class="n">npoints</span> <span class="o">=</span> <span class="mi">81</span>
+<span class="n">edge</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">y</span> <span class="o">=</span> <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">edge</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span> <span class="n">edge</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span> <span class="n">npoints</span><span class="p">)</span>
+<span class="n">XYZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">'ij'</span><span class="p">)</span>
+
+
+<span class="c1"># We model our smeared out charges as gaussian functions:</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">gaussian</span><span class="p">(</span><span class="n">XYZ</span><span class="p">,</span> <span class="n">xyz0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">XYZ</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">g</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">XYZ</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">xyz0</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">*=</span> <span class="p">(</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">**-</span><span class="mf">1.5</span>
+    <span class="k">return</span> <span class="n">g</span>
+
+<span class="n">sigma</span> <span class="o">=</span> <span class="mf">1.5</span>   <span class="c1"># the width of our gaussians</span>
+
+<span class="c1"># Initialize the charge density rho, which is a 3D numpy array:</span>
+<span class="n">rho</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">XYZ</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">-</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">XYZ</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+
+<span class="c1"># The rest is the same as for the discrete case:</span>
+
+<span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_density</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">value</span> <span class="o">=</span> <span class="n">Phi</span><span class="p">(</span><span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span><span class="p">)</span>
+</code></pre></div>
+<p>Instead of the axes, you can also pass the coordinate arrays from <code>np.meshgrid(x, y, z, indexing='ij')</code>,
+also with <code>sparse=True</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_density</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p>The axes don't have to be evenly spaced. A grid that is finer where the charge is concentrated saves a lot of
+points:</p>
+<div class="highlight"><pre><span></span><code><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">61</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]])</span>
+<span class="n">UVW</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">'ij'</span><span class="p">)</span>
+<span class="n">rho_uneven</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">UVW</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">-</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">UVW</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">sigma</span><span class="p">)</span>
+
+<span class="n">Phi_uneven</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_density</span><span class="p">(</span><span class="n">rho_uneven</span><span class="p">,</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">u</span><span class="p">),</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<p>The integrals over the grid are computed with Simpson's rule, so the grid must resolve the charge density
+well.</p>
+<h3 id="the-dict-interface">The Dict Interface</h3>
+<p>Before version 0.6, charge distributions were passed as dict, which still works:</p>
+<div class="highlight"><pre><span></span><code><span class="n">point_charges</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'discrete'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>     <span class="c1"># point charges are discrete charge distributions</span>
+    <span class="s1">'charges'</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">'q'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'xyz'</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)},</span>
+        <span class="p">{</span><span class="s1">'q'</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'xyz'</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)},</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+<span class="n">Phi_discrete</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="p">(</span><span class="n">point_charges</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">density</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'discrete'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>    <span class="c1"># a continuous charge distribution</span>
+    <span class="s1">'rho'</span><span class="p">:</span> <span class="n">rho</span><span class="p">,</span>
+    <span class="s1">'xyz'</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">,</span>           <span class="c1"># or the axes (x, y, z)</span>
+<span class="p">}</span>
+<span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="p">(</span><span class="n">density</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="evaluating-the-expansion">Evaluating the Expansion</h2>
+<p><code>Phi(x, y, z)</code> accepts numbers as well as arrays of any shape. Numbers and arrays are broadcast
+against each other, and the result has the broadcast shape:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="p">(</span><span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span><span class="p">)</span>                  <span class="c1"># a single point</span>
+
+<span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">Phi</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>                          <span class="c1"># 5 points on the x-axis</span>
+
+<span class="n">XS</span><span class="p">,</span> <span class="n">YS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">'ij'</span><span class="p">)</span>
+<span class="n">Phi</span><span class="p">(</span><span class="n">XS</span><span class="p">,</span> <span class="n">YS</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>                        <span class="c1"># a 5x5 array on the plane z=30</span>
+</code></pre></div>
+<p>You can also pass the points as one array of shape <code>(..., 3)</code>, e.g. the positions of particles:</p>
+<div class="highlight"><pre><span></span><code><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">]])</span>
+<span class="n">Phi</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>                            <span class="c1"># 3 values</span>
+</code></pre></div>
+<p>With <code>l_max</code> you can restrict the evaluation to the lower multipoles. It must not exceed the <code>l_max</code>
+the expansion was created with. <code>contributions</code> gives the contribution of each order separately, which
+shows how fast the expansion converges:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="p">(</span><span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>         <span class="c1"># monopole only</span>
+<span class="n">Phi</span><span class="p">(</span><span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>         <span class="c1"># monopole + dipole</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">contributions</span><span class="p">(</span><span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span><span class="p">)</span>    <span class="c1"># [monopole, dipole, quadrupole]</span>
+</code></pre></div>
+<h2 id="the-field-and-the-hessian">The Field and the Hessian</h2>
+<p><code>Phi.field(x, y, z)</code> returns the field <span class="arithmatex">\(\mathbf{E} = -\nabla\Phi\)</span>, and <code>Phi.hessian(x, y, z)</code> the second
+derivatives <span class="arithmatex">\(\partial^2\Phi/\partial x_i \partial x_j\)</span>, both computed analytically from the multipole
+moments. They take the same arguments as <code>Phi(x, y, z)</code>, including <code>l_max</code>. For coordinates <code>x, y, z</code>,
+the components are stacked along the first axes; for points given as one array of shape <code>(..., 3)</code>, along
+the last axes:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Ex</span><span class="p">,</span> <span class="n">Ey</span><span class="p">,</span> <span class="n">Ez</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span><span class="p">)</span>
+
+<span class="n">E</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>                <span class="c1"># shape (3, 5) for the 5 points from above</span>
+<span class="n">E</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>                  <span class="c1"># shape (3, 3): one row (Ex, Ey, Ez) per point</span>
+
+<span class="n">H</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">hessian</span><span class="p">(</span><span class="mf">30.5</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mf">30.7</span><span class="p">)</span>      <span class="c1"># shape (3, 3)</span>
+</code></pre></div>
+<p>The negative Hessian is the gradient of the field, e.g. the electric field gradient, or the tidal tensor in
+gravity. If you need several of these quantities at the same points, <code>evaluate</code> computes them together,
+which is faster:</p>
+<div class="highlight"><pre><span></span><code><span class="n">potential</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">H</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">hessian</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="evaluating-on-the-grid">Evaluating on the Grid</h2>
+<p>For charge densities you can also evaluate directly on the grid of the charge
+density, using slices, indices or boolean masks:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>                           <span class="c1"># the plane z = -8, an 81x81 array</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">field_on_grid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">])</span>      <span class="c1"># the field there, shape (3, 81, 81)</span>
+</code></pre></div>
+<p>A typical use is computing boundary values for a Poisson solver, e.g. one built with
+<a href="https://github.com/maroba/findiff">findiff</a>. <code>boundary_values</code> returns an array of the shape of the grid
+with the potential on the boundary and zeros inside:</p>
+<div class="highlight"><pre><span></span><code><span class="n">boundary</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">boundary_values</span><span class="p">()</span>       <span class="c1"># shape (81, 81, 81)</span>
+<span class="n">boundary</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">boundary_values</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>   <span class="c1"># the two outermost layers, for wider stencils</span>
+</code></pre></div>
+<p>The multipole expansion is only valid outside of the charge distribution, so the grid must be
+large enough for the charge density to have decayed at its boundary (see
+<a href="#where-the-expansion-is-valid">below</a>). Inside the charge distribution, evaluating <code>Phi[...]</code>
+gives meaningless values and an <code>ExpansionValidityWarning</code>.</p>
+<h2 id="where-the-expansion-is-valid">Where the Expansion is Valid</h2>
+<p>The exterior expansion converges only <em>outside</em> the smallest sphere about the expansion center
+that contains all charge, the interior expansion only <em>inside</em> the largest sphere that contains
+no charge. The radius of this sphere is available as</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="o">.</span><span class="n">validity_radius</span>
+
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">external_coords</span>          <span class="c1"># the grid points</span>
+<span class="n">valid</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>          <span class="c1"># boolean mask of the grid points where the</span>
+<span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">rho</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>    <span class="c1"># expansion converges</span>
+<span class="n">values</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span> <span class="o">=</span> <span class="n">Phi</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+</code></pre></div>
+<p>If you evaluate the potential or the field at points where the expansion does not converge,
+<em>multipoles</em> emits an <code>ExpansionValidityWarning</code>, telling you how many points are affected.
+To turn these warnings into errors:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multipoles</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExpansionValidityWarning</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="n">ExpansionValidityWarning</span><span class="p">)</span>
+</code></pre></div>
+<p>A continuous charge density like a gaussian never vanishes exactly. For continuous
+distributions, the sphere therefore contains all but a fraction <code>charge_tol</code> (default <code>1e-6</code>)
+of the total absolute charge. If you evaluate on the boundary of a grid that is too small for the
+charge density, you get a warning, and the result is less accurate. Enlarge the grid in this case,
+or, if you are fine with the accuracy, choose a larger <code>charge_tol</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_density</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">charge_tol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="accuracy-and-the-choice-of-l_max">Accuracy and the Choice of l_max</h2>
+<p><code>error_bound</code> gives an upper bound of the error of the truncated expansion at each point (see the
+<a href="../theory/#accuracy">theory</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">error_bound</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>              <span class="c1"># the error of Phi(0, 0, 10) is at most this</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">error_bound</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>     <span class="c1"># ... and of Phi(0, 0, 10, l_max=2) at most this</span>
+</code></pre></div>
+<p>Instead of choosing <code>l_max</code> yourself, you can let <em>multipoles</em> choose the smallest <code>l_max</code> for which
+the error bound at a distance <code>radius</code> from the expansion center (and therefore farther away) is below a
+relative tolerance <code>tol</code> (default <code>1e-6</code>). The tolerance is relative to the potential the absolute charge
+would have there, i.e. <span class="arithmatex">\(\sum_i |q_i| / r\)</span>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="s1">'auto'</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">)</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">l_max</span>                              <span class="c1"># 11</span>
+</code></pre></div>
+<p>For charge densities, <code>radius</code> defaults to the distance to the boundary of the grid, which is what you need
+for boundary values:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_density</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span> <span class="n">l_max</span><span class="o">=</span><span class="s1">'auto'</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+<span class="n">boundary</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">boundary_values</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="interior-expansion">Interior Expansion</h2>
+<p>By default, <em>multipoles</em> computes the exterior expansion, which is valid <em>outside</em> of the charge
+distribution. For the potential <em>inside</em> a region free of charge, surrounded by the charges, use
+the interior expansion:</p>
+<div class="highlight"><pre><span></span><code><span class="n">square</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+
+<span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">square</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">interior</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># or exterior=False</span>
+<span class="n">Phi</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>   <span class="c1"># = 4 * 1/4 = 1</span>
+</code></pre></div>
+<h2 id="the-expansion-center">The Expansion Center</h2>
+<p>By default, the expansion is done about the center of charge (weighted by the absolute values of
+the charges). You can choose any other point with the <code>center</code> argument. This is useful in
+particular for the interior expansion, which is valid in a sphere about the center that contains
+no charge:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># The center of charge of a single charge is right at the charge, so the interior expansion</span>
+<span class="c1"># about it is impossible. Expanding about (5, 0, 0) is fine and valid for r &lt; 5:</span>
+<span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">interior</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">Phi</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>   <span class="c1"># = 1 / sqrt(26)</span>
+</code></pre></div>
+<p><code>shifted</code> gives the same expansion about another center:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">Phi_shifted</span> <span class="o">=</span> <span class="n">Phi</span><span class="o">.</span><span class="n">shifted</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</code></pre></div>
+<h2 id="multipole-moments">Multipole Moments</h2>
+<p>The total charge, the dipole moment vector and the traceless quadrupole moment tensor, all about
+the expansion center, are available as</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="o">.</span><span class="n">total_charge</span>         <span class="c1"># q</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">dipole_moment</span>        <span class="c1"># p_i = sum of q x_i</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">quadrupole_moment</span>    <span class="c1"># Q_ij = sum of q (3 x_i x_j - r^2 delta_ij)</span>
+</code></pre></div>
+<p>so that <span class="arithmatex">\(\Phi = \frac{q}{r} + \frac{\mathbf{p}\cdot\mathbf{x}}{r^3}
++ \frac{1}{2}\sum_{ij} \frac{Q_{ij} x_i x_j}{r^5} + \dots\)</span> They don't depend on <code>l_max</code>.
+Except for the lowest non-vanishing moment, they depend on the expansion center.
+<code>cartesian_moment(l)</code> gives the cartesian moment of any order up to <code>l_max</code>, a traceless tensor of rank <code>l</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="o">.</span><span class="n">cartesian_moment</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># the octupole moment, shape (3, 3, 3)</span>
+</code></pre></div>
+<p>The spherical multipole moments <span class="arithmatex">\(q_{lm}\)</span> (or <span class="arithmatex">\(I_{lm}\)</span> for the interior expansion) are available as
+a dict with keys <code>(l, m)</code>, or as an array that you index with <code>[l, m]</code>, where negative <code>m</code> wrap
+around as usual in Python:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="o">.</span><span class="n">multipole_moments</span><span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">multipole_moments_array</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>   <span class="c1"># the same</span>
+</code></pre></div>
+<p>They use the Racah normalization of the spherical harmonics (see the <a href="../theory/">theory</a>). For the moments with
+the orthonormal spherical harmonics, as in Jackson's <em>Classical Electrodynamics</em>, or for the moments of the real
+spherical harmonics:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="o">.</span><span class="n">moments</span><span class="p">(</span><span class="n">normalization</span><span class="o">=</span><span class="s1">'orthonormal'</span><span class="p">)</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">moments</span><span class="p">(</span><span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>               <span class="c1"># [1, 1], [1, -1], [1, 0] are p_x, p_y, p_z</span>
+</code></pre></div>
+<p><code>power_spectrum</code> gives the strength of each order, <span class="arithmatex">\(\sqrt{\sum_m |q_{lm}|^2}\)</span>, which does not change
+when you rotate the charge distribution:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="o">.</span><span class="n">power_spectrum</span><span class="p">()</span>                 <span class="c1"># shape (l_max + 1,)</span>
+</code></pre></div>
+<h2 id="combining-expansions">Combining Expansions</h2>
+<p>Expansions of the same kind can be added, subtracted and multiplied by numbers. The result is the
+expansion of the combined charge distribution:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi_a</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">Phi_b</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="n">Phi_ab</span> <span class="o">=</span> <span class="n">Phi_a</span> <span class="o">+</span> <span class="n">Phi_b</span>                 <span class="c1"># a dipole</span>
+<span class="n">Phi_ab</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Phi_a</span> <span class="o">-</span> <span class="n">Phi_b</span> <span class="o">/</span> <span class="mi">2</span>
+</code></pre></div>
+<h2 id="moments-from-elsewhere-saving-and-loading">Moments from Elsewhere, Saving and Loading</h2>
+<p><code>from_moments</code> creates an expansion from known moments, e.g. computed by another program:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_moments</span><span class="p">({(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span> <span class="mi">2</span><span class="p">},</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">Phi</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>                          <span class="c1"># 1/10 + 2/100</span>
+</code></pre></div>
+<p><code>save</code> stores an expansion in a NumPy <code>.npz</code> file, and <code>load</code> restores it. The charges are not saved, only
+what is needed to evaluate the expansion and its error bound. You can also pickle expansions, which keeps
+everything.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+
+<span class="n">Phi</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(),</span> <span class="s1">'expansion.npz'</span><span class="p">)</span>
+
+<span class="n">Phi</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="n">Phi_loaded</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="energy">Energy</h2>
+<p>The potential energy <span class="arithmatex">\(\sum_i q_i \Phi(\mathbf{x}_i)\)</span> of other charges in the potential of the expansion:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Phi</span><span class="o">.</span><span class="n">energy</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
+</code></pre></div>
+<h2 id="plotting">Plotting</h2>
+<p>With matplotlib installed, <code>plot_slice</code> shows the potential on a plane, optionally with field lines. Points
+where the expansion does not converge are left blank:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">Phi</span><span class="o">.</span><span class="n">plot_slice</span><span class="p">(</span><span class="n">normal</span><span class="o">=</span><span class="s1">'y'</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>   <span class="c1"># the plane y = 0 through the center</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>                                  <span class="c1"># or plt.show()</span>
+</code></pre></div>
+<h2 id="units-and-gravity">Units and Gravity</h2>
+<p><em>multipoles</em> computes <span class="arithmatex">\(\Phi = \sum_i q_i / |\mathbf{r} - \mathbf{r}_i|\)</span> (and the corresponding integral for
+charge densities), i.e. the potential in Gaussian units, and its field <span class="arithmatex">\(\mathbf{E} = -\nabla\Phi\)</span>. With
+<code>prefactor</code>, the potential, field and Hessian are multiplied by a constant:</p>
+<table>
+<thead>
+<tr>
+<th><code>prefactor</code></th>
+<th>Constant</th>
+<th>For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>'gaussian'</code> (default)</td>
+<td>1</td>
+<td>Electrostatics in Gaussian units</td>
+</tr>
+<tr>
+<td><code>'SI'</code></td>
+<td><span class="arithmatex">\(1 / (4\pi\varepsilon_0)\)</span></td>
+<td>Electrostatics in SI units: V and V/m</td>
+</tr>
+<tr>
+<td><code>'gravity'</code></td>
+<td><span class="arithmatex">\(-G\)</span></td>
+<td>Gravity with masses as <code>q</code> in SI units: J/kg and m/s²</td>
+</tr>
+<tr>
+<td>any number</td>
+<td>that number</td>
+<td>Anything else</td>
+</tr>
+</tbody>
+</table>
+<p>The constants are available as <code>multipoles.EPSILON_0</code> and <code>multipoles.GRAVITATIONAL_CONSTANT</code>. The
+moments themselves are not scaled.</p>
+<p>For example, the gravitational potential and acceleration of the Earth-Moon system far away from both:</p>
+<div class="highlight"><pre><span></span><code><span class="n">masses</span> <span class="o">=</span> <span class="p">[</span><span class="mf">5.972e24</span><span class="p">,</span> <span class="mf">7.342e22</span><span class="p">]</span>                  <span class="c1"># Earth and Moon, in kg</span>
+<span class="n">positions</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">3.844e8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>       <span class="c1"># in m</span>
+
+<span class="n">M</span> <span class="o">=</span> <span class="n">MultipoleExpansion</span><span class="o">.</span><span class="n">from_charges</span><span class="p">(</span><span class="n">masses</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">l_max</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">prefactor</span><span class="o">=</span><span class="s1">'gravity'</span><span class="p">)</span>
+
+<span class="n">point</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1e9</span><span class="p">,</span> <span class="mf">2e9</span><span class="p">,</span> <span class="mf">0.5e9</span><span class="p">)</span>
+<span class="n">potential</span> <span class="o">=</span> <span class="n">M</span><span class="p">(</span><span class="o">*</span><span class="n">point</span><span class="p">)</span>            <span class="c1"># in J / kg</span>
+<span class="n">acceleration</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="o">*</span><span class="n">point</span><span class="p">)</span>   <span class="c1"># in m / s^2, pointing towards the center of mass</span>
+</code></pre></div>
+<p>Since all masses are positive, the center of charge is the center of mass here.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.code.copy","navigation.sections","navigation.top"],"redirect":null,"search":"../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.3cb411a8.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

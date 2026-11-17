@@ -1,0 +1,6 @@
+zensical
+mkdocstrings[python]
+nbconvert
+ipykernel
+matplotlib
+scipy

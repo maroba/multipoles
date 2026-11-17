@@ -1,0 +1,899 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Multipole expansions of electrostatic and gravitational potentials in Python">
+      
+      
+      
+        <link rel="canonical" href="https://maroba.github.io/multipoles/theory/">
+      
+      
+      
+        <link rel="prev" href="../usage/">
+      
+      
+        <link rel="next" href="../accuracy/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.1.1">
+    
+    
+      
+        <title>Theory - multipoles</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.ebb7f775.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.b60ce83d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="multipoles" class="md-header__button md-logo" aria-label="multipoles" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            multipoles
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Theory
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/maroba/multipoles" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    maroba/multipoles
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="multipoles" class="md-nav__button md-logo" aria-label="multipoles" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    multipoles
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/maroba/multipoles" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    maroba/multipoles
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Usage
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Theory
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Theory
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-multipole-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Multipole Expansion
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-expansion-converges" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where the Expansion Converges
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accuracy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Accuracy
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-field-and-the-hessian" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Field and the Hessian
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cartesian-moments" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cartesian Moments
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Other Conventions
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#translation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Translation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#numerical-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Numerical Methods
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../accuracy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Accuracy
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API Reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Changelog
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-multipole-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Multipole Expansion
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-expansion-converges" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Where the Expansion Converges
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accuracy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Accuracy
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-field-and-the-hessian" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The Field and the Hessian
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cartesian-moments" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cartesian Moments
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Other Conventions
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#translation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Translation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#numerical-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Numerical Methods
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+  
+  
+
+
+<h1 id="theory">Theory</h1>
+<h2 id="the-multipole-expansion">The Multipole Expansion</h2>
+<p>For a given charge density <span class="arithmatex">\(\rho(\mathbf{r})\)</span>, the solution <span class="arithmatex">\(\Phi(\mathbf{r})\)</span> of the Poisson equation
+<span class="arithmatex">\(\nabla^2\Phi=-4\pi \rho\)</span> with vanishing Dirichlet boundary conditions at infinity is</p>
+<div class="arithmatex">\[\Phi(\mathbf{r})=\int d^3r'\frac{\rho(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}\]</div>
+<p>Examples of this are the electrostatic and the Newtonian gravitational potential (see
+<a href="../usage/#units-and-gravity">Units and Gravity</a> for the constants). If you need to evaluate
+<span class="arithmatex">\(\Phi(\mathbf{r})\)</span> at many points, calculating the integral for each point is computationally expensive. As a
+faster alternative, we can express <span class="arithmatex">\(\Phi\)</span> in terms of the multipole moments <span class="arithmatex">\(q_{lm}\)</span> or <span class="arithmatex">\(I_{lm}\)</span> (note some
+literature uses the subscripts <span class="arithmatex">\((\cdot)_{nm}\)</span>):</p>
+<div class="arithmatex">\[\Phi(\mathbf{r})=\sum_{l=0}^\infty\underbrace{\sqrt{\frac{4\pi}{2l+1}}\sum_{m=-l}^lY_{lm}(\theta, \varphi)\frac{q_{lm}}{r^{l+1}}}_{\Phi^{(l)}}\]</div>
+<p>for an exterior expansion, or</p>
+<div class="arithmatex">\[\Phi(\mathbf{r})=\sum_{l=0}^\infty\underbrace{\sqrt{\frac{4\pi}{2l+1}}\sum_{m=-l}^lY_{lm}(\theta, \varphi)I_{lm}r^{l}}_{\Phi^{(l)}}\]</div>
+<p>for an interior expansion. Here <span class="arithmatex">\(r, \theta, \varphi\)</span> are the spherical coordinates of <span class="arithmatex">\(\mathbf{r}\)</span> relative to
+the expansion center (by default the center of charge, weighted by <span class="arithmatex">\(|\rho|\)</span>), and <span class="arithmatex">\(Y_{lm}(\theta, \varphi)\)</span> are
+the spherical harmonics.</p>
+<p>The multipole moments for the exterior expansion are</p>
+<div class="arithmatex">\[q_{lm} = \sqrt{\frac{4\pi}{2l+1}}\int d^3 r' \rho(\mathbf{r}')r'^l Y^*_{lm}(\theta', \varphi')\]</div>
+<p>and the multipole moments for the interior expansion are</p>
+<div class="arithmatex">\[I_{lm} = \sqrt{\frac{4\pi}{2l+1}}\int d^3 r' \frac{\rho(\mathbf{r}')}{r'^{l+1}} Y^*_{lm}(\theta', \varphi')\]</div>
+<p>For point charges, the integrals become sums over the charges.</p>
+<p>This approach is usually much faster, because the contributions <span class="arithmatex">\(\Phi^{(l)}\)</span> get smaller with increasing <span class="arithmatex">\(l\)</span>.
+So we only have to calculate a few integrals to obtain some <span class="arithmatex">\(q_{lm}\)</span> or <span class="arithmatex">\(I_{lm}\)</span>, and can then evaluate the
+potential anywhere at the cost of a short sum.</p>
+<p>Some literature considers the factor <span class="arithmatex">\(\sqrt{\frac{4\pi}{2l+1}}\)</span> as part of the definition of
+<span class="arithmatex">\(Y_{lm}(\theta, \varphi)\)</span> (Racah normalization).</p>
+<h2 id="where-the-expansion-converges">Where the Expansion Converges</h2>
+<p>The expansion is based on</p>
+<div class="arithmatex">\[\frac{1}{|\mathbf{r}-\mathbf{r}'|} = \sum_{l=0}^\infty \frac{r_&lt;^l}{r_&gt;^{l+1}} P_l(\cos\gamma)\]</div>
+<p>where <span class="arithmatex">\(r_&lt;\)</span> and <span class="arithmatex">\(r_&gt;\)</span> are the smaller and larger of <span class="arithmatex">\(r\)</span> and <span class="arithmatex">\(r'\)</span>, and <span class="arithmatex">\(\gamma\)</span> is the angle between
+<span class="arithmatex">\(\mathbf{r}\)</span> and <span class="arithmatex">\(\mathbf{r}'\)</span>. The exterior expansion uses <span class="arithmatex">\(r_&gt; = r\)</span> for all charges. It therefore converges
+only <em>outside</em> the smallest sphere about the expansion center that contains all charge, with radius
+<span class="arithmatex">\(R = \max r'\)</span>. Likewise, the interior expansion converges only <em>inside</em> the largest sphere that contains no
+charge, with radius <span class="arithmatex">\(R = \min r'\)</span>. <em>multipoles</em> stores <span class="arithmatex">\(R\)</span> as <code>validity_radius</code> and warns when you evaluate the
+expansion on the wrong side of this sphere.</p>
+<h2 id="accuracy">Accuracy</h2>
+<p>Since <span class="arithmatex">\(|P_l| \le 1\)</span>, a charge <span class="arithmatex">\(q\)</span> at distance <span class="arithmatex">\(r'\)</span> from the center contributes at most
+<span class="arithmatex">\(|q|\, r_&lt;^{l}/r_&gt;^{l+1}\)</span> to the term of order <span class="arithmatex">\(l\)</span>. Summing the geometric series of the omitted terms, the
+error of the exterior expansion truncated after <span class="arithmatex">\(l_{max}\)</span> is bounded by</p>
+<div class="arithmatex">\[\left|\Phi(\mathbf{r}) - \sum_{l=0}^{l_{max}} \Phi^{(l)}(\mathbf{r})\right| \le
+\int d^3r' \frac{|\rho(\mathbf{r}')|}{r - r'} \left(\frac{r'}{r}\right)^{l_{max}+1}
+\le \frac{Q}{r - R} \left(\frac{R}{r}\right)^{l_{max}+1}\]</div>
+<p>where <span class="arithmatex">\(Q = \int d^3r' |\rho(\mathbf{r}')|\)</span> is the total absolute charge. For the interior expansion, swap
+<span class="arithmatex">\(r\)</span> and <span class="arithmatex">\(r'\)</span>, and <span class="arithmatex">\(r\)</span> and <span class="arithmatex">\(R\)</span>. So the error decreases geometrically with <span class="arithmatex">\(l_{max}\)</span>, and the faster, the
+farther away from the sphere of radius <span class="arithmatex">\(R\)</span> you are. Each additional order gains a factor <span class="arithmatex">\(R/r\)</span> in accuracy.</p>
+<p><code>error_bound</code> computes the first, sharper bound. For speed, it bins the absolute charge into 512 shells by
+the distance from the center, and counts the charge of each shell at the shell radius farthest from the region
+of convergence, so the result stays an upper bound. For continuous distributions, it ignores the fraction
+<code>charge_tol</code> of the charge beyond <code>validity_radius</code>.</p>
+<p>With <code>l_max='auto'</code>, <em>multipoles</em> chooses the smallest <span class="arithmatex">\(l_{max}\)</span> for which this bound at the distance
+<code>radius</code> is at most <code>tol</code> times <span class="arithmatex">\(\int d^3r' |\rho(\mathbf{r}')| / r_&gt;\)</span>, the potential the absolute charge
+would have there. Since the bound decreases with the distance from the validity sphere, it then holds
+everywhere beyond <code>radius</code> (exterior) or within <code>radius</code> (interior). The bound is rigorous, so it is often
+pessimistic: the actual error is typically one to three orders of magnitude smaller (see the
+<a href="../accuracy/#the-error-bound">accuracy notebook</a>).</p>
+<p>For continuous charge distributions on a grid, two more sources of error come in:</p>
+<ul>
+<li><strong>Resolution:</strong> the moments are integrated numerically with Simpson's rule, so the grid must resolve the
+  charge density well.</li>
+<li><strong>Box size:</strong> charge outside of the grid is missing, so the density must have decayed at the boundary of
+  the grid. Also, the expansion is only valid outside of the charge distribution, so if you need the
+  potential on the boundary of the grid, the grid must be large enough for the charge to be well inside.</li>
+</ul>
+<p>The <a href="../accuracy/">accuracy notebook</a> shows how the error behaves for some gaussian charge distributions.</p>
+<h2 id="the-field-and-the-hessian">The Field and the Hessian</h2>
+<p>The field <span class="arithmatex">\(\mathbf{E} = -\nabla\Phi\)</span> is computed analytically, using the ladder relations of the solid harmonics.
+With the Racah-normalized spherical harmonics <span class="arithmatex">\(C_{lm} = \sqrt{\frac{4\pi}{2l+1}} Y_{lm}\)</span>, the irregular solid
+harmonics <span class="arithmatex">\(I_{lm} = C_{lm} / r^{l+1}\)</span> of the exterior expansion obey</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\partial_z I_{lm} &amp;= -\sqrt{(l+m+1)(l-m+1)}\, I_{l+1,m} \\
+(\partial_x + i\partial_y) I_{lm} &amp;= \sqrt{(l+m+1)(l+m+2)}\, I_{l+1,m+1} \\
+(\partial_x - i\partial_y) I_{lm} &amp;= -\sqrt{(l-m+1)(l-m+2)}\, I_{l+1,m-1}
+\end{aligned}
+\]</div>
+<p>and the regular solid harmonics <span class="arithmatex">\(R_{lm} = r^l C_{lm}\)</span> of the interior expansion obey</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\partial_z R_{lm} &amp;= \sqrt{(l+m)(l-m)}\, R_{l-1,m} \\
+(\partial_x + i\partial_y) R_{lm} &amp;= \sqrt{(l-m)(l-m-1)}\, R_{l-1,m+1} \\
+(\partial_x - i\partial_y) R_{lm} &amp;= -\sqrt{(l+m)(l+m-1)}\, R_{l-1,m-1}
+\end{aligned}
+\]</div>
+<p>Unlike derivatives in spherical coordinates, these relations have no singularities on the z-axis.
+With <span class="arithmatex">\(\partial_x = \frac{1}{2}(D_+ + D_-)\)</span> and <span class="arithmatex">\(\partial_y = \frac{1}{2i}(D_+ - D_-)\)</span>, where
+<span class="arithmatex">\(D_\pm = \partial_x \pm i\partial_y\)</span>, each derivative maps an expansion in solid harmonics to another one.
+The Hessian <span class="arithmatex">\(\partial_i\partial_j\Phi\)</span> applies them twice.</p>
+<h2 id="cartesian-moments">Cartesian Moments</h2>
+<p>The total charge <span class="arithmatex">\(q\)</span>, the dipole moment <span class="arithmatex">\(\mathbf{p}\)</span> and the traceless quadrupole moment <span class="arithmatex">\(Q_{ij}\)</span>,</p>
+<div class="arithmatex">\[q = \int d^3r' \rho(\mathbf{r}'), \quad
+p_i = \int d^3r' \rho(\mathbf{r}')\, x_i', \quad
+Q_{ij} = \int d^3r' \rho(\mathbf{r}') \left(3 x_i' x_j' - r'^2 \delta_{ij}\right)\]</div>
+<p>give the first terms of the exterior expansion in cartesian form,</p>
+<div class="arithmatex">\[\Phi(\mathbf{r}) = \frac{q}{r} + \frac{\mathbf{p}\cdot\mathbf{r}}{r^3}
++ \frac{1}{2}\sum_{ij} \frac{Q_{ij}\, x_i x_j}{r^5} + \dots\]</div>
+<p>They are related to the spherical moments by</p>
+<div class="arithmatex">\[
+\begin{aligned}
+q &amp;= q_{00}, \\
+p_x &amp;= -\sqrt{2}\,\mathrm{Re}\, q_{11}, \quad p_y = \sqrt{2}\,\mathrm{Im}\, q_{11}, \quad p_z = q_{10}, \\
+Q_{zz} &amp;= 2 q_{20}, \quad Q_{xz} = -\sqrt{6}\,\mathrm{Re}\, q_{21}, \quad Q_{yz} = \sqrt{6}\,\mathrm{Im}\, q_{21}, \\
+Q_{xx} - Q_{yy} &amp;= 2\sqrt{6}\,\mathrm{Re}\, q_{22}, \quad Q_{xy} = -\sqrt{6}\,\mathrm{Im}\, q_{22}.
+\end{aligned}
+\]</div>
+<p>In general, the term of order <span class="arithmatex">\(l\)</span> of the exterior expansion is</p>
+<div class="arithmatex">\[\Phi^{(l)}(\mathbf{r}) = \frac{1}{l!} \sum_{i_1 \dots i_l} M^{(l)}_{i_1 \dots i_l}
+\frac{x_{i_1} \cdots x_{i_l}}{r^{2l+1}}, \qquad
+M^{(l)} = (2l-1)!! \int d^3r' \rho(\mathbf{r}') \left[\mathbf{r}'^{\otimes l}\right]_\text{traceless}\]</div>
+<p>with the symmetric traceless tensor <span class="arithmatex">\(M^{(l)}\)</span> of rank <span class="arithmatex">\(l\)</span>, available as <code>cartesian_moment(l)</code>:
+<span class="arithmatex">\(M^{(0)} = q\)</span>, <span class="arithmatex">\(M^{(1)} = \mathbf{p}\)</span>, <span class="arithmatex">\(M^{(2)} = Q\)</span>, <span class="arithmatex">\(M^{(3)}\)</span> is the octupole moment, etc. Since
+<span class="arithmatex">\(r^{2l+1}\Phi^{(l)} = \sum_m q_{lm} R_{lm}(\mathbf{r})\)</span> is a harmonic polynomial of degree <span class="arithmatex">\(l\)</span>, <span class="arithmatex">\(M^{(l)}\)</span>
+is its <span class="arithmatex">\(l\)</span>-th derivative, which <em>multipoles</em> computes with the ladder relations above. For the interior
+expansion, <code>cartesian_moment(l)</code> is the same derivative of <span class="arithmatex">\(\Phi^{(l)}\)</span>, i.e. the tensor of the <span class="arithmatex">\(l\)</span>-th
+derivatives of the potential at the center.</p>
+<p>All moments are taken about the expansion center. Except for the lowest non-vanishing one, they change when you
+choose a different center.</p>
+<h2 id="other-conventions">Other Conventions</h2>
+<p>With the orthonormal spherical harmonics <span class="arithmatex">\(Y_{lm}\)</span> instead of <span class="arithmatex">\(C_{lm}\)</span>, e.g. as in Jackson's <em>Classical
+Electrodynamics</em>, the moments are <span class="arithmatex">\(\sqrt{(2l+1)/4\pi}\, q_{lm}\)</span>. The real spherical harmonics give the real
+moments <span class="arithmatex">\(q_{l0}\)</span>, <span class="arithmatex">\(\sqrt{2}(-1)^m\,\mathrm{Re}\, q_{lm}\)</span> (cosine part) and
+<span class="arithmatex">\(\sqrt{2}(-1)^{m+1}\,\mathrm{Im}\, q_{lm}\)</span> (sine part) for <span class="arithmatex">\(m &gt; 0\)</span>, which <code>moments(real=True)</code> stores at
+<code>[l, m]</code> and <code>[l, -m]</code>. In Racah normalization, the real dipole moments are <span class="arithmatex">\((p_x, p_y, p_z)\)</span>.</p>
+<p>The power spectrum <span class="arithmatex">\(\sqrt{\sum_m |q_{lm}|^2}\)</span> does not change when the charge distribution is rotated about the
+expansion center, because rotations mix the <span class="arithmatex">\(C_{lm}\)</span> of each <span class="arithmatex">\(l\)</span> unitarily.</p>
+<h2 id="translation">Translation</h2>
+<p>The regular solid harmonics obey the addition theorem</p>
+<div class="arithmatex">\[R_{lm}(\mathbf{a} + \mathbf{b}) = \sum_{\lambda=0}^{l} \sum_{\mu=-\lambda}^{\lambda}
+\sqrt{\binom{l+m}{\lambda+\mu}\binom{l-m}{\lambda-\mu}}\, R_{\lambda\mu}(\mathbf{a})\,
+R_{l-\lambda,m-\mu}(\mathbf{b})\]</div>
+<p><code>shifted</code> uses it for expansions without charges, e.g. from <code>from_moments</code>. Moving the center by <span class="arithmatex">\(\mathbf{d}\)</span>,
+the exterior moments about the new center are</p>
+<div class="arithmatex">\[q'_{lm} = \sum_{\lambda\mu} \sqrt{\binom{l+m}{\lambda+\mu}\binom{l-m}{\lambda-\mu}}\, q_{\lambda\mu}\,
+R^*_{l-\lambda,m-\mu}(-\mathbf{d})\]</div>
+<p>which only needs the moments up to order <span class="arithmatex">\(l\)</span>, so the translated moments are exact. The sphere containing all
+charge grows by <span class="arithmatex">\(|\mathbf{d}|\)</span>. For the interior expansion,</p>
+<div class="arithmatex">\[I'_{\lambda\mu} = \sum_{l \ge \lambda} \sum_m \sqrt{\binom{l+m}{\lambda+\mu}\binom{l-m}{\lambda-\mu}}\,
+I_{lm}\, R_{l-\lambda,m-\mu}(\mathbf{d})\]</div>
+<p>needs moments of all orders. With the moments up to <span class="arithmatex">\(l_{max}\)</span>, it gives the same truncated expansion (a
+polynomial of degree <span class="arithmatex">\(l_{max}\)</span>) about the new center, with the same error, valid in a sphere smaller by
+<span class="arithmatex">\(|\mathbf{d}|\)</span>. Expansions that know their charges simply recompute the moments.</p>
+<h2 id="numerical-methods">Numerical Methods</h2>
+<ul>
+<li><strong>Spherical harmonics</strong> are computed with the standard three-term recurrence of the associated Legendre
+  functions, which is stable to high orders and much faster than evaluating each <span class="arithmatex">\(Y_{lm}\)</span> separately.</li>
+<li><strong>Grid integrals</strong> are weighted sums with the weights of the composite Simpson rule along each axis, for
+  evenly or unevenly spaced points. For an even number of points, the last interval is integrated with a
+  parabola through the last three points, as in <code>scipy.integrate.simpson</code>. Grid points without charge are
+  skipped, and the moments are accumulated in chunks of points to limit the memory needed.</li>
+<li><strong>Spherical coordinates</strong> use <span class="arithmatex">\(\theta = \operatorname{atan2}(\sqrt{x^2+y^2}, z)\)</span>, which, unlike
+  <span class="arithmatex">\(\arccos(z/r)\)</span>, is accurate close to the z-axis.</li>
+<li>Only the harmonics with <span class="arithmatex">\(m \ge 0\)</span> are computed; those with negative <span class="arithmatex">\(m\)</span> follow from
+  <span class="arithmatex">\(C_{l,-m} = (-1)^m C_{lm}^*\)</span>. Since the potential is real, <span class="arithmatex">\(q_{l,-m} = (-1)^m q_{lm}^*\)</span>, so the terms
+  with <span class="arithmatex">\(\pm m\)</span> add up to <span class="arithmatex">\(2\,\mathrm{Re}(q_{lm} C_{lm})\)</span>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["content.code.copy","navigation.sections","navigation.top"],"redirect":null,"search":"../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.3cb411a8.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
