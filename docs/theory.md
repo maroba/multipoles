@@ -77,7 +77,7 @@ With `l_max='auto'`, *multipoles* chooses the smallest $l_{max}$ for which this 
 would have there. Since the bound decreases with the distance from the validity sphere, it then holds
 everywhere beyond `radius` (exterior) or within `radius` (interior). The bound is rigorous, so it is often
 pessimistic: the actual error is typically one to three orders of magnitude smaller (see the
-[accuracy notebook](accuracy.ipynb#the-error-bound)).
+[accuracy notebook](accuracy.md#the-error-bound)).
 
 For continuous charge distributions on a grid, two more sources of error come in:
 
@@ -87,7 +87,7 @@ For continuous charge distributions on a grid, two more sources of error come in
   the grid. Also, the expansion is only valid outside of the charge distribution, so if you need the
   potential on the boundary of the grid, the grid must be large enough for the charge to be well inside.
 
-The [accuracy notebook](accuracy.ipynb) shows how the error behaves for some gaussian charge distributions.
+The [accuracy notebook](accuracy.md) shows how the error behaves for some gaussian charge distributions.
 
 ## The Field and the Hessian
 

@@ -32,12 +32,6 @@ plugins:
             docstring_style: google
             docstring_options:
               returns_named_value: false
-  - mkdocs-jupyter:
-      include: ["*.ipynb"]
-      ignore: ["*.md"]  # otherwise every markdown page is read with jupytext
-      execute: true
-      allow_errors: false
-      include_source: true
 
 markdown_extensions:
   - admonition
@@ -57,6 +51,6 @@ nav:
   - Home: index.md
   - Usage: usage.md
   - Theory: theory.md
-  - Accuracy: accuracy.ipynb
+  - Accuracy: accuracy.md  # generated from accuracy.ipynb, see CONTRIBUTING.md
   - API Reference: reference.md
   - Changelog: changelog.md

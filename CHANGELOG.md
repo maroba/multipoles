@@ -5,6 +5,12 @@ All notable changes to *multipoles* are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- The documentation is built with Zensical instead of Material for MkDocs, which reaches its end of life in
+  May 2027. The accuracy notebook is converted to a page with nbconvert.
+- The GitHub Actions use the current major versions, which run on Node.js 24 instead of the deprecated Node.js 20.
+
 ## [0.6.0] - 2026-11-16
 
 ### Added

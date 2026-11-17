@@ -116,3 +116,7 @@ dmypy.json
 
 # Pycharm
 .idea
+
+# generated from docs/accuracy.ipynb before the documentation is built
+docs/accuracy.md
+docs/accuracy_files/

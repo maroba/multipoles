@@ -1,8 +1,6 @@
-mkdocs
-mkdocs-material
-mkdocs-jupyter
+zensical
 mkdocstrings[python]
-pymdown-extensions
+nbconvert
+ipykernel
 matplotlib
 scipy
-ipykernel

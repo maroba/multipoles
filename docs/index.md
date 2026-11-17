@@ -24,6 +24,6 @@ pip install --upgrade multipoles
 - [Usage](usage.md): charge densities, evaluation on grids, the field and the Hessian, accuracy control,
   the interior expansion, the multipole moments, combining, saving and plotting expansions, units and gravity
 - [Theory](theory.md): the formulas behind the expansion, where it converges and how accurate it is
-- [Accuracy](accuracy.ipynb): a worked comparison with exact solutions
+- [Accuracy](accuracy.md): a worked comparison with exact solutions
 - [API Reference](reference.md)
 - [Changelog](changelog.md)

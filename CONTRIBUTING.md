@@ -41,8 +41,16 @@ Before you open a pull request, please make sure that
   guide, so if you change an example, check that it still runs. `pytest --cov=multipoles` shows the test
   coverage.
 * **the code is clean**: `ruff check .`
-* **the documentation builds without warnings**: `mkdocs build --strict`. This also runs the notebooks in
-  `docs/`. Use `mkdocs serve` to preview the documentation at http://127.0.0.1:8000.
+* **the documentation builds without warnings**. The documentation is built with
+  [Zensical](https://zensical.org). The accuracy notebook is executed and converted to the page
+  `docs/accuracy.md` first (it is not checked in):
+
+  ```
+  jupyter nbconvert --to markdown --execute docs/accuracy.ipynb --output-dir docs
+  zensical build --strict
+  ```
+
+  Use `zensical serve` to preview the documentation at http://127.0.0.1:8000.
 * **new features or behavior changes have tests** and are described in the docstrings, in the documentation
   in `docs/`, and in [CHANGELOG.md](CHANGELOG.md) under *Unreleased*.
 
