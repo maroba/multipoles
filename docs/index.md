@@ -1,23 +1,21 @@
 # multipoles
 
-*multipoles* computes multipole expansions of the solutions of the Poisson equation, such as electrostatic
-or gravitational potentials. Instead of integrating over the whole charge or mass distribution for every point
-where you need the potential, you compute a few multipole moments once and evaluate the expansion cheaply
-anywhere outside (or, for the interior expansion, inside) the distribution.
+![The potential and field lines of twelve point charges, and the error of the expansion for different l_max](images/readme-light.png#only-light)
+![The potential and field lines of twelve point charges, and the error of the expansion for different l_max](images/readme-dark.png#only-dark)
+
+--8<-- "README.md:intro"
 
 --8<-- "README.md:features"
 
 ## Installation
 
-```
-pip install --upgrade multipoles
+```bash
+pip install multipoles
 ```
 
-*multipoles* only needs NumPy. For plotting, install it with `pip install multipoles[plot]`.
+*multipoles* only needs NumPy. For plotting, install it with `pip install "multipoles[plot]"`.
 
 --8<-- "README.md:quickstart"
-
---8<-- "README.md:units"
 
 ## Where to go next
 

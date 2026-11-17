@@ -5,7 +5,13 @@ All notable changes to *multipoles* are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- `CITATION.cff`, so that GitHub shows how to cite *multipoles*.
+
 ### Changed
+
+- A new README with a figure, the typical uses, and sections on related projects and citing.
 
 - The documentation is built with Zensical instead of Material for MkDocs, which reaches its end of life in
   May 2027. The accuracy notebook is converted to a page with nbconvert.

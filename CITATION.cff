@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "multipoles: Multipole expansions of electrostatic and gravitational potentials in Python"
+abstract: >-
+  multipoles computes the multipole expansion of point charges or of a charge density on a grid,
+  and evaluates the potential, its field and its Hessian with a rigorous error bound. It supports
+  exterior and interior expansions, unevenly spaced grids, electrostatics and gravity.
+authors:
+  - family-names: Baer
+    given-names: Matthias
+version: 0.6.0
+date-released: "2026-11-16"
+license: MIT
+repository-code: "https://github.com/maroba/multipoles"
+url: "https://maroba.github.io/multipoles/"
+keywords:
+  - multipole expansion
+  - Poisson equation
+  - electrostatics
+  - gravity
+  - physics
+  - Python

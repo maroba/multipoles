@@ -54,6 +54,14 @@ Before you open a pull request, please make sure that
 * **new features or behavior changes have tests** and are described in the docstrings, in the documentation
   in `docs/`, and in [CHANGELOG.md](CHANGELOG.md) under *Unreleased*.
 
+#### **Releasing a new version**
+
+* Update `__version__` in `multipoles/__init__.py` and `version` and `date-released` in `CITATION.cff`, and
+  move the entries under *Unreleased* in [CHANGELOG.md](CHANGELOG.md) to a section for the new version.
+* After the checks on `master` pass, create a release with a new tag `vX.Y.Z` on GitHub. The tag publishes the
+  package on PyPI and deploys the documentation.
+* The figure in the README is created with `python scripts/readme_figure.py`.
+
 #### **Do you have questions about the source code?**
 
 * Ask any question about how to use *multipoles* in

@@ -26,6 +26,11 @@ jobs:
             echo "Tag ${GITHUB_REF_NAME} does not match the package version $version"
             exit 1
           fi
+          citation=$(python -c "import re; print(re.search(r'^version: *(.*)$', open('CITATION.cff').read(), re.M).group(1))")
+          if [ "$citation" != "$version" ]; then
+            echo "The version $citation in CITATION.cff does not match the package version $version"
+            exit 1
+          fi
       - name: Build the package
         run: |
           python -m pip install --upgrade pip build twine
